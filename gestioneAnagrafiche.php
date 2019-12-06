@@ -62,6 +62,10 @@
 					Configurazione: 
 					<select id="selectConfigurazionePunzoni" onchange="getConfigurazionePunzoni()"></select>
 				</div>
+				<div class="absoluteActionBarSommarioArchiviElement">
+					Posizione punzone microgiunture: 
+					<select id="selectPosizionePunzoneMicrogiunture" onfocus="selectPosizionePunzoneMicrogiuntureOldValue=this.value" onchange="updatePosizionePunzoneMicrogiunture(this,this.value)"></select>
+				</div>
 			</div>
 		</div>
 		<div id="containerSommarioArchivi"></div>

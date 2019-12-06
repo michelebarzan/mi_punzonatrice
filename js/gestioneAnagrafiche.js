@@ -1,4 +1,5 @@
     var specialColumns=[];
+    var selectPosizionePunzoneMicrogiuntureOldValue;
 
     function mainNavBarLoaded()
     {
@@ -349,14 +350,63 @@
         target:null,
         item:null
     };
+    function getPosizionePunzoneMicrogiunture(configurazione)
+    {
+        document.getElementById("selectPosizionePunzoneMicrogiunture").innerHTML="";
+        $.get("getPosizionePunzoneMicrogiunture.php",
+        {
+            configurazione
+        },
+        function(response, status)
+        {
+            if(status=="success")
+            {
+                if(response.toLowerCase().indexOf("error")>-1 || response.toLowerCase().indexOf("notice")>-1 || response.toLowerCase().indexOf("warning")>-1)
+                {
+                    Swal.fire
+                    ({
+                        type: 'error',
+                        title: 'Errore',
+                        text: "Se il problema persiste contatta l' amministratore"
+                    });
+                    console.log(response);
+                }
+                else
+                {
+                    var option=document.createElement("option");
+                    option.setAttribute("value","");
+                    option.innerHTML="Nessuno";
+                    document.getElementById("selectPosizionePunzoneMicrogiunture").appendChild(option);
+
+                    var posizioni=['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12','T13','T14','T15','T16','T17','T18','T19','T20','T21','T22','T23','T24','T25','T26','T27','T28','T29','T30'];
+                    posizioni.forEach(function(posizione)
+                    {
+                        var option=document.createElement("option");
+                        option.setAttribute("value",posizione);
+                        option.innerHTML=posizione;
+                        if(response.indexOf(posizione)>-1)
+                        {
+                            option.setAttribute("selected","selected");
+                        }
+                        document.getElementById("selectPosizionePunzoneMicrogiunture").appendChild(option);
+                    });
+                }
+            }
+            else
+                console.log(status);
+        });
+    }
     async function getConfigurazionePunzoni()
     {
+        var configurazione=$("#selectConfigurazionePunzoni").val();
+
+        getPosizionePunzoneMicrogiunture(configurazione);
+
         $(".absoluteActionBarControls").hide("fast","swing");
         $("#configurazionePunzoniControls").show("fast","swing");
 
         $("#containerSommarioArchivi").empty();
 
-        var configurazione=$("#selectConfigurazionePunzoni").val();
         var punzoniConfigurazioneResponse=await getPunzoniConfigurazione(configurazione);
         var altriPunzoniResponse=await getAltriPunzoni(configurazione);
         if(punzoniConfigurazioneResponse.indexOf("error")>-1 || punzoniConfigurazioneResponse.indexOf("notice")>-1 || punzoniConfigurazioneResponse.indexOf("warning")>-1 || altriPunzoniResponse.indexOf("error")>-1 || altriPunzoniResponse.indexOf("notice")>-1 || altriPunzoniResponse.indexOf("warning")>-1)
@@ -947,4 +997,44 @@
             //triggering the function
             downloadLink.click();
         }
+    }
+    function updatePosizionePunzoneMicrogiunture(select,posizione)
+    {
+        var configurazione=$("#selectConfigurazionePunzoni").val();
+        $.post("updatePosizionePunzoneMicrogiunture.php",
+        {
+            configurazione,
+            posizione
+        },
+        function(response, status)
+        {
+            if(status=="success")
+            {
+                if(response.toLowerCase().indexOf("error")>-1 || response.toLowerCase().indexOf("notice")>-1 || response.toLowerCase().indexOf("warning")>-1)
+                {
+                    Swal.fire
+                    ({
+                        type: 'error',
+                        title: 'Errore',
+                        text: "Se il problema persiste contatta l' amministratore"
+                    });
+                    console.log(response);
+                }
+                else
+                {
+                    if(response.indexOf("nopunzone")>-1)
+                    {
+                        Swal.fire
+                        ({
+                            type: 'warning',
+                            title: 'Attenzione',
+                            text: "Nessun punzone nella posizione selezionata"
+                        });
+                        select.value=selectPosizionePunzoneMicrogiuntureOldValue;
+                    }
+                }
+            }
+            else
+                console.log(status);
+        });
     }

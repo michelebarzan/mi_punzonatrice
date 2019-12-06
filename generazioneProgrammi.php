@@ -49,7 +49,8 @@
                 <select id="selectGruppoSviluppi" style="width:70px" class="absoluteActionBarTransparentSelect" onchange="addCodiciGruppo(this.value)"></select>
             </div>
             <button class="absoluteActionBarButton" onclick="apriPopupNuovoGruppoSviluppi()">Crea nuovo gruppo sviluppi <i style="margin-left:5px" class="far fa-object-ungroup"></i></button>
-            <div class="absoluteActionBarElement">
+            <button class="absoluteActionBarButton" onclick="apriPopupScegliGruppiSviluppi()">Gestisci gruppi sviluppi <i style="margin-left:5px" class="fad fa-cog"></i></button>
+			<div class="absoluteActionBarElement">
                 Inserisci sviluppo: 
                 <input type="text" id="inputInserisciSviluppo" maxlength="10">
             </div>

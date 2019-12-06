@@ -1,5 +1,6 @@
     var sviluppi=[];
     var codiciNuovoGruppo=[];
+    var codiciModificaGruppo=[];
     var elencoSviluppi=[];
     var errorsArray=[];
     var sviluppiGenerati=[];
@@ -1229,6 +1230,371 @@
                 }
             }
         });
+    }
+    async function apriPopupScegliGruppiSviluppi()
+    {
+        var outerContainer=document.createElement("div");
+        
+        var inputContainer=document.createElement("div");
+        inputContainer.setAttribute("class","popupNuovoGruppoInputContainer");
+
+        var formInputLabel=document.createElement("div");
+        formInputLabel.setAttribute("class","popupNuovoGruppoInputLabel");
+        formInputLabel.innerHTML="Nome gruppo";
+
+        inputContainer.appendChild(formInputLabel);
+
+        var formInput=document.createElement("select");
+        formInput.setAttribute("class","popupNuovoGruppoInput");
+        formInput.setAttribute("id","popupScegliGrupponome");
+
+        var gruppiSviluppiResponse=await getGruppiSviluppi();
+        if(gruppiSviluppiResponse.toLowerCase().indexOf("error")>-1 || gruppiSviluppiResponse.toLowerCase().indexOf("notice")>-1 || gruppiSviluppiResponse.toLowerCase().indexOf("warning")>-1)
+        {
+            Swal.fire
+            ({
+                type: 'error',
+                title: 'Errore',
+                text: "Se il problema persiste contatta l' amministratore"
+            });
+            console.log(gruppiSviluppiResponse);
+        }
+        else
+            var gruppi=JSON.parse(gruppiSviluppiResponse);
+        
+        gruppi.forEach(function(gruppo)
+        {
+            var option=document.createElement("option");
+            option.setAttribute("value",gruppo.id_gruppo);
+            option.innerHTML=gruppo.nome;
+            formInput.appendChild(option);
+        });
+
+        inputContainer.appendChild(formInput);
+
+        outerContainer.appendChild(inputContainer);
+
+        Swal.fire
+        ({
+            title: 'Scegli gruppo di sviluppi',
+            width:"800px",
+            background: "#e2e1e0",
+            html: outerContainer.outerHTML,
+            showConfirmButton: true,
+            showCancelButton : false,
+            showCloseButton: true,
+            allowOutsideClick:false,
+            confirmButtonText: "Conferma",
+            onOpen : function()
+                    {
+                        
+                    }
+        }).then((result) =>
+        {
+            if (result.value)
+            {
+                var id_gruppo=document.getElementById("popupScegliGrupponome").value;
+                apriPopupGestisciGruppiSviluppi(id_gruppo);
+            }
+        });
+    }
+    function getInfoGruppo(id_gruppo)
+    {
+        return new Promise(function (resolve, reject) 
+        {
+            $.get("getInfoGruppo.php",
+            {
+                id_gruppo
+            },
+            function(response, status)
+            {
+                if(status=="success")
+                {
+                   resolve(response);
+                }
+                else
+                    reject({status});
+            });
+        });
+    }
+    async function apriPopupGestisciGruppiSviluppi(id_gruppo)
+    {
+        var infoGruppoResponse=await getInfoGruppo(id_gruppo);
+        if(infoGruppoResponse.toLowerCase().indexOf("error")>-1 || infoGruppoResponse.toLowerCase().indexOf("notice")>-1 || infoGruppoResponse.toLowerCase().indexOf("warning")>-1)
+        {
+            Swal.fire
+            ({
+                type: 'error',
+                title: 'Errore',
+                text: "Se il problema persiste contatta l' amministratore"
+            });
+            console.log(infoGruppoResponse);
+        }
+        else
+            var infoGruppo=JSON.parse(infoGruppoResponse);
+        
+        codiciModificaGruppo=[];
+
+        var outerContainer=document.createElement("div");
+        
+        var inputContainer=document.createElement("div");
+        inputContainer.setAttribute("class","popupNuovoGruppoInputContainer");
+
+        var formInputLabel=document.createElement("div");
+        formInputLabel.setAttribute("class","popupNuovoGruppoInputLabel");
+        formInputLabel.innerHTML="Nome gruppo";
+
+        inputContainer.appendChild(formInputLabel);
+
+        var formInput=document.createElement("textarea");
+        formInput.setAttribute("class","popupNuovoGruppoInput");
+        formInput.setAttribute("id","popupModificaGrupponome");
+
+        inputContainer.appendChild(formInput);
+
+        outerContainer.appendChild(inputContainer);
+
+        var inputContainer=document.createElement("div");
+        inputContainer.setAttribute("class","popupNuovoGruppoInputContainer");
+
+        var formInputLabel=document.createElement("div");
+        formInputLabel.setAttribute("class","popupNuovoGruppoInputLabel");
+        formInputLabel.innerHTML="Note";
+
+        inputContainer.appendChild(formInputLabel);
+
+        var formInput=document.createElement("textarea");
+        formInput.setAttribute("class","popupNuovoGruppoInput");
+        formInput.setAttribute("id","popupModificaGrupponote");
+
+        inputContainer.appendChild(formInput);
+
+        outerContainer.appendChild(inputContainer);
+
+        var inputContainer=document.createElement("div");
+        inputContainer.setAttribute("class","popupNuovoGruppoInputContainer");
+
+        var formInputLabel=document.createElement("div");
+        formInputLabel.setAttribute("class","popupNuovoGruppoInputLabel");
+        formInputLabel.innerHTML="Codice";
+
+        inputContainer.appendChild(formInputLabel);
+
+        var formInput=document.createElement("textarea");
+        formInput.setAttribute("class","popupNuovoGruppoInput");
+        formInput.setAttribute("id","popupNuovoGruppocodice");
+        formInput.setAttribute("maxlength","10");
+
+        inputContainer.appendChild(formInput);
+
+        var btnAggiungiCodice=document.createElement("button");
+        btnAggiungiCodice.setAttribute("id","popupNuovoGruppoBtnAggiungiCodice");
+        btnAggiungiCodice.setAttribute("onclick","aggiungiCodicePupupModificaGruppo()");
+        btnAggiungiCodice.innerHTML='Aggiungi <i class="fad fa-layer-plus" style="margin-left:5px"></i>';
+
+        inputContainer.appendChild(btnAggiungiCodice);
+
+        outerContainer.appendChild(inputContainer);
+
+        var inputContainer=document.createElement("div");
+        inputContainer.setAttribute("class","popupNuovoGruppoInputContainer");
+
+        var formInputLabel=document.createElement("div");
+        formInputLabel.setAttribute("class","popupNuovoGruppoInputLabel");
+        formInputLabel.setAttribute("style","width:100%;");
+        formInputLabel.innerHTML="Elenco codici";
+
+        inputContainer.appendChild(formInputLabel);
+
+        var codiciContainer=document.createElement("div");
+        codiciContainer.setAttribute("id","popupNuovoGruppoCodiciContainer");
+
+        inputContainer.appendChild(codiciContainer);
+
+        outerContainer.appendChild(inputContainer);
+
+        Swal.fire
+        ({
+            title: 'Modifica gruppo di sviluppi',
+            width:"800px",
+            background: "#e2e1e0",
+            html: outerContainer.outerHTML,
+            showConfirmButton: true,
+            showCancelButton : true,
+            showCloseButton: true,
+            allowOutsideClick:false,
+            confirmButtonText: "Conferma",
+            cancelButtonText: "Elimina gruppo",
+            cancelButtonColor: "#DA6969",
+            onOpen : function()
+                    {
+                        document.getElementById("popupModificaGrupponome").value=infoGruppo.nome;
+                        document.getElementById("popupModificaGrupponote").value=infoGruppo.note;
+
+                        infoGruppo["sviluppi"].forEach(function(sviluppo)
+                        {
+                            codiciModificaGruppo.push(sviluppo.sviluppo);
+
+                            var container=document.getElementById("popupNuovoGruppoCodiciContainer");
+
+                            var itemCodice=document.createElement("div");
+                            itemCodice.setAttribute("class","popupNuovoGruppoItemCodice");
+
+                            var itemCodiceName=document.createElement("div");
+                            itemCodiceName.innerHTML=sviluppo.sviluppo;
+
+                            var itemCodiceButton=document.createElement("button");
+                            itemCodiceButton.setAttribute("title","Rimuovi");
+                            itemCodiceButton.setAttribute("onclick","rimuoviCodicePupupModificaGruppo(this.parentElement,'"+sviluppo.sviluppo+"')");
+
+                            var itemCodiceButtonIcon=document.createElement("i");
+                            itemCodiceButtonIcon.setAttribute("class","far fa-times");
+                            itemCodiceButton.appendChild(itemCodiceButtonIcon);
+
+                            itemCodice.appendChild(itemCodiceName);
+                            itemCodice.appendChild(itemCodiceButton);
+
+                            container.appendChild(itemCodice);
+                        });
+                    }
+        }).then((result) =>
+        {
+            if (result.value)
+            {
+                var nome=document.getElementById("popupModificaGrupponome").value;
+                var note=document.getElementById("popupModificaGrupponote").value;
+                if(nome=="" || nome==null)
+                {
+                    Swal.fire
+                    ({
+                        type: 'error',
+                        title: 'Errore',
+                        text: "Inserisci un nome valido"
+                    }).then((result) =>
+                    {
+                        apriPopupGestisciGruppiSviluppi(id_gruppo);
+                    });;
+                }
+                else
+                {
+                    var JSONcodiciModificaGruppo=JSON.stringify(codiciModificaGruppo);
+                    $.post("modificaGruppoSviluppi.php",
+                    {
+                        id_gruppo,
+                        nome,
+                        note,
+                        JSONcodiciModificaGruppo
+                    },
+                    function(response, status)
+                    {
+                        if(status=="success")
+                        {
+                            if(response.indexOf("error")>-1 || response.indexOf("notice")>-1 || response.indexOf("warning")>-1)
+                            {
+                                Swal.fire
+                                ({
+                                    type: 'error',
+                                    title: 'Errore',
+                                    text: "Se il problema persiste contatta l' amministratore"
+                                })
+                                console.log(response);
+                            }
+                            else
+                            {
+                                addOptionsGruppiSviluppi();
+                                Swal.fire
+                                ({
+                                    type: 'success',
+                                    title: 'Modifiche salvate'
+                                })
+                            }
+                        }
+                        else
+                            console.log(status);
+                    });
+                }
+            }
+            else if(result.dismiss === Swal.DismissReason.cancel)
+            {
+                $.post("eliminaGruppoSviluppi.php",
+                {
+                    id_gruppo
+                },
+                function(response, status)
+                {
+                    if(status=="success")
+                    {
+                        if(response.indexOf("error")>-1 || response.indexOf("notice")>-1 || response.indexOf("warning")>-1)
+                        {
+                            Swal.fire
+                            ({
+                                type: 'error',
+                                title: 'Errore',
+                                text: "Se il problema persiste contatta l' amministratore"
+                            })
+                            console.log(response);
+                        }
+                        else
+                        {
+                            addOptionsGruppiSviluppi();
+                            Swal.fire
+                            ({
+                                type: 'success',
+                                title: 'Gruppo eliminato'
+                            })
+                        }
+                    }
+                    else
+                        console.log(status);
+                });
+            }
+        });
+    }
+    function rimuoviCodicePupupModificaGruppo(itemCodice,codice)
+    {
+        itemCodice.remove();
+        var index = codiciModificaGruppo.indexOf(codice);
+        if (index > -1)
+        {
+            codiciModificaGruppo.splice(index, 1);
+        }
+    }
+    function aggiungiCodicePupupModificaGruppo()
+    {
+        var input=document.getElementById("popupNuovoGruppocodice");
+        var codice=input.value;
+
+        if(codice==null || codice=="" || codice==" " || codice[0]!=="+" || codice.length!==10)
+        {
+            window.alert("Codice non valido");
+        }
+        else
+        {
+            input.value="";
+
+            codiciModificaGruppo.push(codice.replace("+",""));
+
+            var container=document.getElementById("popupNuovoGruppoCodiciContainer");
+
+            var itemCodice=document.createElement("div");
+            itemCodice.setAttribute("class","popupNuovoGruppoItemCodice");
+
+            var itemCodiceName=document.createElement("div");
+            itemCodiceName.innerHTML=codice;
+
+            var itemCodiceButton=document.createElement("button");
+            itemCodiceButton.setAttribute("title","Rimuovi");
+            itemCodiceButton.setAttribute("onclick","rimuoviCodicePupupModificaGruppo(this.parentElement,'"+codice+"')");
+
+            var itemCodiceButtonIcon=document.createElement("i");
+            itemCodiceButtonIcon.setAttribute("class","far fa-times");
+            itemCodiceButton.appendChild(itemCodiceButtonIcon);
+
+            itemCodice.appendChild(itemCodiceName);
+            itemCodice.appendChild(itemCodiceButton);
+
+            container.appendChild(itemCodice);
+        }
     }
     function aggiungiCodicePupupNuovoGruppo()
     {
