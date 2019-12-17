@@ -51,7 +51,43 @@
                     }
                     else
                     {
-                        echo "ok";
+                        $qImportaDati5="DELETE FROM dibpan";
+                        $rImportaDati5=sqlsrv_query($conn,$qImportaDati5);
+                        if($rImportaDati5==FALSE)
+                        {
+                            echo "error";
+                        }
+                        else
+                        {
+                            $qImportaDati6="INSERT INTO dibpan SELECT * FROM OPENQUERY([sql.servizioglobale.it], 'select * from po00.dbo.dibpan UNION ALL select * from beb.dbo.dibpan UNION ALL select * from Grimaldi.dbo.dibpan UNION ALL select * from spareti.dbo.dibpan') AS derivedtbl_1";
+                            $rImportaDati6=sqlsrv_query($conn,$qImportaDati6);
+                            if($rImportaDati6==FALSE)
+                            {
+                                echo "error";
+                            }
+                            else
+                            {
+                                $qImportaDati7="DELETE FROM pannellil";
+                                $rImportaDati7=sqlsrv_query($conn,$qImportaDati7);
+                                if($rImportaDati7==FALSE)
+                                {
+                                    echo "error";
+                                }
+                                else
+                                {
+                                    $qImportaDati8="INSERT INTO pannellil SELECT * FROM OPENQUERY([sql.servizioglobale.it], 'select * from po00.dbo.pannellil UNION ALL select * from beb.dbo.pannellil UNION ALL select * from Grimaldi.dbo.pannellil UNION ALL select * from spareti.dbo.pannellil') AS derivedtbl_1";
+                                    $rImportaDati8=sqlsrv_query($conn,$qImportaDati8);
+                                    if($rImportaDati8==FALSE)
+                                    {
+                                        echo "error";
+                                    }
+                                    else
+                                    {
+                                        echo "ok";
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

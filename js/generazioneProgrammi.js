@@ -73,7 +73,9 @@
             select.innerHTML="";
             var option=document.createElement("option");
             option.setAttribute("value","");
-            option.innerHTML="Nessuno";
+            option.setAttribute("disabled","");
+            option.setAttribute("selected","");
+            option.innerHTML="Scegli Gruppo sviluppi";
             select.appendChild(option);
             gruppi.forEach(function(gruppo)
             {
@@ -207,8 +209,53 @@
                     controlliSviluppoContainer.setAttribute("id","controlliSviluppoContainer"+idItemSviluppo);
                     controlliSviluppoContainer.setAttribute("style","float:right;margin-right:0px");
 
+                    var bntActions=document.createElement("button");
+                    bntActions.setAttribute("class","itemSviluppoDatoIconButton");
+                    bntActions.setAttribute("id","btnActions"+idItemSviluppo);
+                    bntActions.setAttribute("title","Menu");
+                    bntActions.setAttribute("onclick","openPopupActions(event,this,'"+idItemSviluppo+"','"+sviluppo+"')");
+                    bntActions.innerHTML='<i class="far fa-bars" style="color:gray"></i>';
+                    controlliSviluppoContainer.appendChild(bntActions);
+
+                    var popupActions=document.createElement("div");
+                    popupActions.setAttribute("class","popupActions");
+                    popupActions.setAttribute("id","popupActions"+idItemSviluppo);
+
+                    var bntGeneraProgramma=document.createElement("button");
+                    bntGeneraProgramma.setAttribute("onclick","generaProgrammaSviluppo(this,'"+sviluppo+"',true,false)");
+                    bntGeneraProgramma.setAttribute("class","btnGeneraSviluppo");
+                    bntGeneraProgramma.setAttribute("id","btnGeneraSviluppo"+idItemSviluppo);
+                    bntGeneraProgramma.innerHTML='Genera NC <i class="fad fa-layer-plus" style="margin-left:5px"></i>';
+                    popupActions.appendChild(bntGeneraProgramma);
+
                     var bntRimuoviSviluppo=document.createElement("button");
+                    bntRimuoviSviluppo.setAttribute("id","btnRimuoviSviluppo"+idItemSviluppo);
+                    bntRimuoviSviluppo.setAttribute("title","Rimuovi");
+                    bntRimuoviSviluppo.setAttribute("onclick","rimuoviSviluppo('"+idItemSviluppo+"','"+sviluppo+"')");
+                    bntRimuoviSviluppo.innerHTML='Rimuovi NC <i class="far fa-times" style="margin-left:5px;color:gray"></i>';
+                    popupActions.appendChild(bntRimuoviSviluppo);
+
+                    var inputCaricaProgramma=document.createElement("input");
+                    inputCaricaProgramma.setAttribute("type","file");
+                    inputCaricaProgramma.setAttribute("accept",".nc");
+                    inputCaricaProgramma.setAttribute("onclick",'this.value=""');
+                    inputCaricaProgramma.setAttribute("onchange","caricaProgrammaSviluppo(this,'"+sviluppo+"','"+idItemSviluppo+"')");
+                    inputCaricaProgramma.setAttribute("style","display:none");
+                    inputCaricaProgramma.setAttribute("id","inputCaricaProgramma"+idItemSviluppo);
+                    popupActions.appendChild(inputCaricaProgramma);
+
+                    var bntCaricaProgramma=document.createElement("button");
+                    bntCaricaProgramma.setAttribute("onclick","document.getElementById('inputCaricaProgramma"+idItemSviluppo+"').click()");
+                    bntCaricaProgramma.setAttribute("style","float:left");
+                    bntCaricaProgramma.setAttribute("id","btnCaricaSviluppo"+idItemSviluppo);
+                    bntCaricaProgramma.innerHTML='Carica NC <i class="far fa-upload" style="margin-left:5px"></i>';
+                    popupActions.appendChild(bntCaricaProgramma);
+
+                    document.body.appendChild(popupActions);
+
+                    /*var bntRimuoviSviluppo=document.createElement("button");
                     bntRimuoviSviluppo.setAttribute("class","itemSviluppoDatoIconButton");
+                    bntRimuoviSviluppo.setAttribute("id","btnRimuoviSviluppo"+idItemSviluppo);
                     bntRimuoviSviluppo.setAttribute("title","Rimuovi");
                     bntRimuoviSviluppo.setAttribute("onclick","this.parentElement.parentElement.remove();rimuoviSviluppo('"+sviluppo+"')");
                     bntRimuoviSviluppo.innerHTML='<i class="far fa-times" style="color:gray"></i>';
@@ -236,7 +283,7 @@
                     bntCaricaProgramma.setAttribute("style","float:left");
                     bntCaricaProgramma.setAttribute("id","btnCaricaSviluppo"+idItemSviluppo);
                     bntCaricaProgramma.innerHTML='Carica NC <i class="far fa-upload" style="margin-left:5px"></i>';
-                    controlliSviluppoContainer.appendChild(bntCaricaProgramma);
+                    controlliSviluppoContainer.appendChild(bntCaricaProgramma);*/
 
                     itemSviluppo.appendChild(controlliSviluppoContainer);
 
@@ -253,6 +300,43 @@
                 });
             }
         }
+    }
+    function openPopupActions(event,button,idItemSviluppo)
+    {
+        closeAllPopupsActions();
+
+        var rect = button.getBoundingClientRect();
+
+        var popupActionsElement=document.getElementById("popupActions"+idItemSviluppo);
+        var width=$("#popupActions"+idItemSviluppo).width();
+        var left=rect.left-width-20;
+
+        popupActionsElement.setAttribute("style","left:"+left+";top:"+rect.top);
+
+        $("#popupActions"+idItemSviluppo).show("fast","swing");
+    }
+    window.addEventListener("click",(function(e) 
+    {
+        if($(e.target).attr("class")=="itemSviluppoDatoIconButton")
+        {
+            e.preventDefault();
+            return;
+        }
+        if($(e.target).attr("class")=="far fa-bars")
+        {
+            e.preventDefault();
+            return;
+        }
+        if($(e.target).attr("class")=="btnGeneraSviluppo")
+        {
+            e.preventDefault();
+            return;
+        }
+        closeAllPopupsActions();
+    }));
+    function closeAllPopupsActions()
+    {
+        $(".popupActions").hide("fast","swing");
     }
     function cleanContainerSviluppi()
     {
@@ -769,21 +853,42 @@
         {
             try
             {
-                button.innerHTML='<i class="far fa-check-circle" style="color:green"></i>';
-                setTimeout(function(){ button.innerHTML='Genera NC <i class="fad fa-layer-plus" style="margin-left:5px"></i>';button.disabled=false; }, 3000);
-
                 var listaLavorazioni=JSON.parse(responseListaLavorazioni);
                 console.log(listaLavorazioni);
 
                 var idItemSviluppo=sviluppo.replace("+","");
                 checkGenerato(sviluppo,idItemSviluppo);
+
+                button.innerHTML='<i class="far fa-check-circle" style="color:green"></i>';
+                /*setTimeout(function()
+                {
+                    button.innerHTML='Genera NC <i class="fad fa-layer-plus" style="margin-left:5px"></i>';
+                    button.disabled=false;
+                    closeAllPopupsActions(); 
+                }, 5000);*/
+                setTimeout(function()
+                {
+                    //button.innerHTML='<i class="far fa-download"></i><i class="fal fa-spinner-third" style="margin-left:5px"></i>';
+                    button.innerHTML='<i class="far fa-download"></i>';
+                    setTimeout(function()
+                    {
+                        document.getElementById("linkScaricaSviluppo"+idItemSviluppo).click();
+                    }, 1000);
+                }, 2000);
+
+                setTimeout(function()
+                {
+                    button.innerHTML='Genera NC <i class="fad fa-layer-plus" style="margin-left:5px"></i>';
+                    button.disabled=false;
+                    closeAllPopupsActions(); 
+                }, 5000);          
             }
             catch (e)
             {
                 console.log(e)+"\n\n";
                 console.log(responseListaLavorazioni);
                 button.innerHTML='<i class="far fa-times-circle" style="color:red"></i>';
-                setTimeout(function(){ button.innerHTML='Genera NC <i class="fad fa-layer-plus" style="margin-left:5px"></i>';button.disabled=false; }, 3000);
+                setTimeout(function(){ button.innerHTML='Genera NC <i class="fad fa-layer-plus" style="margin-left:5px"></i>';button.disabled=false;closeAllPopupsActions(); }, 5000);
                 
                 if(alert)
                 {
@@ -884,12 +989,13 @@
             });
         });
     }
-    function rimuoviSviluppo(sviluppo)
+    function rimuoviSviluppo(idItemSviluppo,sviluppo)
     {
         var index = elencoSviluppi.indexOf(sviluppo);
         if (index > -1)
         {
             elencoSviluppi.splice(index, 1);
+            document.getElementById("itemSviluppo"+idItemSviluppo).remove();
         }
     }
     function checkLavorazioni(sviluppo,idItemSviluppo)
@@ -990,18 +1096,26 @@
                         
                         if(document.getElementById("linkScaricaSviluppo"+idItemSviluppo)==null)
                         {
+                            try {
+                                document.getElementById("linkScaricaSviluppo"+idItemSviluppo).remove();
+                                document.getElementById("btnScaricaSviluppo"+idItemSviluppo).remove();
+                            } catch (error) {
+                                
+                            }
+
                             var linkScaricaProgramma=document.createElement("a");
                             linkScaricaProgramma.setAttribute("id","linkScaricaSviluppo"+idItemSviluppo);
                             linkScaricaProgramma.setAttribute("style","display:none");
                             linkScaricaProgramma.setAttribute("href","nc/"+configurazione+"/"+sviluppo+".nc");
-                            document.getElementById("controlliSviluppoContainer"+idItemSviluppo).appendChild(linkScaricaProgramma);
+                            document.getElementById("popupActions"+idItemSviluppo).appendChild(linkScaricaProgramma);
 
                             var bntScaricaProgramma=document.createElement("button");
                             bntScaricaProgramma.setAttribute("class","itemSviluppoDatoTextButton");
+                            bntScaricaProgramma.setAttribute("id","btnScaricaSviluppo"+idItemSviluppo);
                             bntScaricaProgramma.setAttribute("title","Scarica programma");
                             bntScaricaProgramma.setAttribute("onclick","document.getElementById('linkScaricaSviluppo"+idItemSviluppo+"').click()");
                             bntScaricaProgramma.innerHTML='Scarica NC <i class="far fa-download" style="margin-left:5px"></i>';
-                            document.getElementById("controlliSviluppoContainer"+idItemSviluppo).appendChild(bntScaricaProgramma);
+                            document.getElementById("popupActions"+idItemSviluppo).appendChild(bntScaricaProgramma);
                         }
                     }
                 }
@@ -1642,10 +1756,13 @@
             codiciNuovoGruppo.splice(index, 1);
         }
     }
-    function addCodiciGruppo(gruppo)
+    async function addCodiciGruppo(select,gruppo)
     {
         if(gruppo!=null && gruppo!="")
         {
+            var nome_gruppo=await getNomeGruppoById(gruppo);
+            select.value="";
+            select.setAttribute("title",nome_gruppo);
             $.get("getCodiciGruppo.php",
             {
                 gruppo
@@ -1677,4 +1794,23 @@
                     console.log(status);
             });
         }
+    }
+    function getNomeGruppoById(id_gruppo)
+    {
+        return new Promise(function (resolve, reject) 
+        {
+            $.get("getNomeGruppoById.php",
+            {
+                id_gruppo
+            },
+            function(response, status)
+            {
+                if(status=="success")
+                {
+                   resolve(response);
+                }
+                else
+                    reject({status});
+            });
+        });
     }

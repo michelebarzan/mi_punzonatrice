@@ -45,8 +45,9 @@
                 <select id="selectConfigurazionePunzoni" style="width:70px" class="absoluteActionBarTransparentSelect" onchange="cleanContainerSviluppi()"></select>
             </div>
             <div class="absoluteActionBarSelectContainer">
-                Gruppo sviluppi: 
-                <select id="selectGruppoSviluppi" style="width:70px" class="absoluteActionBarTransparentSelect" onchange="addCodiciGruppo(this.value)"></select>
+                <!--Gruppo sviluppi: 
+                <select id="selectGruppoSviluppi" style="width:70px" class="absoluteActionBarTransparentSelect" onchange="addCodiciGruppo(this.value)"></select>-->
+				<select id="selectGruppoSviluppi" style="width:165px" class="absoluteActionBarTransparentSelect" onchange="addCodiciGruppo(this,this.value)"></select>
             </div>
             <button class="absoluteActionBarButton" onclick="apriPopupNuovoGruppoSviluppi()">Crea nuovo gruppo sviluppi <i style="margin-left:5px" class="far fa-object-ungroup"></i></button>
             <button class="absoluteActionBarButton" onclick="apriPopupScegliGruppiSviluppi()">Gestisci gruppi sviluppi <i style="margin-left:5px" class="fad fa-cog"></i></button>

@@ -48,6 +48,7 @@
 				<button class="functionListButton" onclick="resetStyle(this);getTable('anagrafica_punzoni')">Anagrafica punzoni</button>
 				<button class="functionListButton" onclick="resetStyle(this);getTable('anagrafica_multitools')">Anagrafica multitools</button>
 				<button class="functionListButton" onclick="resetStyle(this);getTable('anagrafica_configurazioni')">Anagrafica configurazioni torretta</button>
+				<button class="functionListButton" onclick="resetStyle(this);getTable('scantonature')">Scantonature</button>
 				<button class="functionListButton" onclick="resetStyle(this);addOptionsConfigurazioni();">Configurazioni punzoni torretta</button>
 			</div>
 		</div>

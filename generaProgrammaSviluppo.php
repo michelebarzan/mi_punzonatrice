@@ -95,7 +95,7 @@
             {
                 $areaRettangolo=$rowLavorazioni['DIMX']*$rowLavorazioni['DIMY'];
                 $area_microgiunture=getParametro("area_microgiunture",$conn);
-                $arrayResponse["areaRettangolo"]=$areaRettangolo;
+                //$arrayResponse["areaRettangolo"]=$areaRettangolo;
 
                 if($areaRettangolo>$area_microgiunture)
                     lavorazioneMicrogiuntura($punzoni,$lavorazioneF,$arrayResponse,$conn,$infoSviluppo,$configurazione);
@@ -162,26 +162,26 @@
                             $lavorazioneS["spostamento"]=$rowScantonature2['interasse'];
                             $lavorazioneS["ripetizioni"]=$rowScantonature2['ripetizioni'];
                             $lavorazioneS["rotazione"]=$rowScantonature2['rotazione'];
+                            
+                            $punzoneCorrenteS["id_punzone"]=$rowScantonature2['id_punzone'];
+                            $punzoneCorrenteS["nomePunzone"]=$rowScantonature2['nome'];
+                            $punzoneCorrenteS["descrizione"]=$rowScantonature2['descrizionePunzone'];
+                            $punzoneCorrenteS["dx"]=floatval($rowScantonature2['dx']);
+                            $punzoneCorrenteS["dy"]=floatval($rowScantonature2['dy']);
+                            $punzoneCorrenteS["forma"]=$rowScantonature2['forma'];
+                            $punzoneCorrenteS["angolo"]=floatval($rowScantonature2['angoloPunzone']);
+                            $punzoneCorrenteS["ix"]=floatval($rowScantonature2['ix']);
+                            $punzoneCorrenteS["iy"]=floatval($rowScantonature2['iy']);
+                            $punzoneCorrenteS["area"]=floatval($rowScantonature2['area']);
+                            $punzoneCorrenteS["posizione"]=$rowScantonature2['posizione'];
 
-                            if(!isset($punzoneCorrenteS))
-                            {
-                                $punzoneCorrenteS["id_punzone"]=$rowScantonature2['id_punzone'];
-                                $punzoneCorrenteS["nomePunzone"]=$rowScantonature2['nome'];
-                                $punzoneCorrenteS["descrizione"]=$rowScantonature2['descrizionePunzone'];
-                                $punzoneCorrenteS["dx"]=floatval($rowScantonature2['dx']);
-                                $punzoneCorrenteS["dy"]=floatval($rowScantonature2['dy']);
-                                $punzoneCorrenteS["forma"]=$rowScantonature2['forma'];
-                                $punzoneCorrenteS["angolo"]=floatval($rowScantonature2['angoloPunzone']);
-                                $punzoneCorrenteS["ix"]=floatval($rowScantonature2['ix']);
-                                $punzoneCorrenteS["iy"]=floatval($rowScantonature2['iy']);
-                                $punzoneCorrenteS["area"]=floatval($rowScantonature2['area']);
-                                $punzoneCorrenteS["posizione"]=$rowScantonature2['posizione'];
-                            }
+                            $lavorazioneS["punzone"]=$punzoneCorrenteS;
+                            
                             array_push($lavorazioniS,$lavorazioneS);
                         }
                     }
                     if(sizeof($lavorazioniS)>0)
-                        lavorazioneScantonatura($punzoneCorrenteS,$lavorazioniS,$arrayResponse,$conn,$infoSviluppo);
+                        lavorazioneScantonatura($lavorazioniS,$arrayResponse,$conn,$infoSviluppo);
                 }
                 else
                 {
@@ -196,9 +196,43 @@
     }
     //------------------------------------------------------------------------------------------
 
+    //GENERO LE LAVORAZIONI PER ANGOLO 0-180
+    /*$qScantonature1="SELECT * FROM scantonature WHERE configurazione_punzoni IN (SELECT DISTINCT id_configurazione_punzoni FROM configurazioni_punzoni WHERE configurazione=$configurazione) 
+                    AND tipo ='".$infoSviluppo['TIPO']."' AND lato='A0-180'";
+    $rScantonature1=sqlsrv_query($conn,$qScantonature1);
+    if($rScantonature1==FALSE)
+    {
+        die("queryerr");
+    }
+    else
+    {
+        $rows1 = sqlsrv_has_rows( $rScantonature1 );
+        if ($rows1 === true)
+        {
+            $qScantonature2="    SELECT        dbo.pannellil.ANG, dbo.pannellil.LUNG1, dbo.pannellil.LUNG2
+            FROM            dbo.dibpan INNER JOIN
+                             dbo.pannellil ON dbo.dibpan.CODPAN = dbo.pannellil.CODPAN INNER JOIN
+                             dbo.sviluppi ON dbo.dibpan.CODELE = dbo.sviluppi.CODSVI COLLATE Latin1_General_CI_AS
+            WHERE        (CONVERT(float, dbo.pannellil.ANG) > 0) AND (CONVERT(float, dbo.pannellil.ANG) < 180) AND (dbo.sviluppi.CODSVI = '$sviluppo')";
+            $rScantonature2=sqlsrv_query($conn,$qScantonature2);
+            if($rScantonature2==FALSE)
+            {
+                die("queryerr");
+            }
+            else
+            {
+                $rows2 = sqlsrv_has_rows( $rScantonature2 );
+                if ($rows2 === true)
+                {
+
+                }
+            }
+        }
+    }*/
+
     //SEPARO LE LAVORAZIONI IN BASE AI RIPOSIZIONAMENTI-----------------------------------------
     $listaLavorazioni=$arrayResponse["lavorazioni"];
-    $riposizionamenti=getRiposizionamenti($listaLavorazioni,$arrayResponse,$conn);
+    $riposizionamenti=getRiposizionamenti($infoSviluppo,$listaLavorazioni,$arrayResponse,$conn);
 
     $arrayOutput=[];
 
@@ -215,52 +249,95 @@
     }
     usort($riposizionamenti, "valore");
     $listaLavorazioniSeparate=[];
-    for ($i = 0; $i <= sizeof($riposizionamenti); $i++)
-    {
-        $riposizionamentoPrecedente = null;
-        
-        if(isset($riposizionamenti[$i-1]))
-            $riposizionamentoPrecedente=$riposizionamenti[$i-1];
-        else
-        {
-            //-100000 valore sicuramente inferiore alla più piccola yPunzonata possibile
-            $riposizionamentoPrecedente["valore"]=-100000;
-            $riposizionamentoPrecedente["verso"]="X";
-        }
-        
-        if(isset($riposizionamenti[$i]))
-            $riposizionamento=$riposizionamenti[$i];
-        else
-        {
-            //100000 valore sicuramente superiore alla più grande yPunzonata possibile
-            $riposizionamento["valore"]=100000;
-            $riposizionamento["verso"]="X";
-        }
 
-        $listaLavorazioneSeparata["valoreREP"]=$riposizionamento["valore"];
-        $listaLavorazioneSeparata["versoREP"]=$riposizionamento["verso"];
-        $listaLavorazioneSeparata["output"]=[];
-        $listaLavorazioneSeparataOutput=[];
-        foreach($arrayOutput as $output)
+    $x_fine_ciclo=floatval(getParametro("x_fine_ciclo",$conn));
+    $inizio_area_lavoro=floatval(getParametro("inizio_area_lavoro",$conn));
+
+    if(isset($riposizionamenti[0]))
+    {
+        $intervallo["valoreREP"]=$riposizionamenti[0]["valore"];
+        $intervallo["versoREP"]=$riposizionamenti[0]["verso"];
+    }
+    else
+    {
+        $intervallo["valoreREP"]=100000;
+        $intervallo["versoREP"]="X";
+    }
+    $intervallo["output"]=[];
+    $intervallo["min"]=$inizio_area_lavoro;
+    $intervallo["max"]=$x_fine_ciclo;
+    array_push($listaLavorazioniSeparate,$intervallo);
+
+    if(isset($riposizionamenti[1]))
+        $riposizionamentoSuccessivo=$riposizionamenti[1];
+    else
+    {
+        $riposizionamentoSuccessivo["valore"]=100000;
+        $riposizionamentoSuccessivo["verso"]="X";
+    }
+    $j=2;
+    foreach($riposizionamenti as $riposizionamento)
+    {
+        $intervallo["valoreREP"]=$riposizionamentoSuccessivo["valore"];
+        $intervallo["versoREP"]=$riposizionamentoSuccessivo["verso"];
+        $intervallo["output"]=[];
+        $intervallo["min"]=$riposizionamento["valore"];
+        $intervallo["max"]=$x_fine_ciclo+$riposizionamento["valore"];
+        
+        array_push($listaLavorazioniSeparate,$intervallo);
+        if(isset($riposizionamenti[1]))
+            $riposizionamentoSuccessivo=$riposizionamenti[$j];
+        else
         {
-            if($output["yPunzonata"]<=$riposizionamento["valore"] && $output["yPunzonata"]>$riposizionamentoPrecedente["valore"])
-                array_push($listaLavorazioneSeparataOutput,$output);
+            $riposizionamentoSuccessivo["valore"]=100000;
+            $riposizionamentoSuccessivo["verso"]="X";
         }
-        $listaLavorazioneSeparata["output"]=$listaLavorazioneSeparataOutput;
-        array_push($listaLavorazioniSeparate,$listaLavorazioneSeparata);
+        $j++;
+    }
+    
+    foreach($arrayOutput as $output)
+    {
+        $yPunzonata["min"]=$output["yPunzonata"];
+        if($output["orientamento"]==0 && $output["nRipetizioni"]>1)
+            $yPunzonata["max"]=$output["yPunzonata"]+($output["spostamento"]*($output["nRipetizioni"]-1));
+        else
+            $yPunzonata["max"]=$output["yPunzonata"];
+        
+        if($yPunzonata["max"]>$listaLavorazioniSeparate[0]["min"] && $yPunzonata["max"]<$listaLavorazioniSeparate[0]["max"] && $yPunzonata["min"]>$listaLavorazioniSeparate[0]["min"] && $yPunzonata["min"]<$listaLavorazioniSeparate[0]["max"])
+        {
+            array_push($listaLavorazioniSeparate[0]["output"],$output);
+        }
+        else
+        {
+            if(isset($listaLavorazioniSeparate[1]))
+            {
+                if($yPunzonata["max"]>$listaLavorazioniSeparate[1]["min"] && $yPunzonata["max"]<$listaLavorazioniSeparate[1]["max"] && $yPunzonata["min"]>$listaLavorazioniSeparate[1]["min"] && $yPunzonata["min"]<$listaLavorazioniSeparate[1]["max"])
+                {
+                    array_push($listaLavorazioniSeparate[1]["output"],$output);
+                }
+                else
+                {
+                    if(isset($listaLavorazioniSeparate[2]))
+                    {
+                        if($yPunzonata["max"]>$listaLavorazioniSeparate[2]["min"] && $yPunzonata["max"]<$listaLavorazioniSeparate[2]["max"] && $yPunzonata["min"]>$listaLavorazioniSeparate[2]["min"] && $yPunzonata["min"]<$listaLavorazioniSeparate[2]["max"])
+                        {
+                            array_push($listaLavorazioniSeparate[2]["output"],$output);
+                        }
+                        else
+                            die("generr|Necessari più di due riposizionamenti");
+                    }
+                    else
+                        die("generr|Problema generale riposizionamenti");
+                }
+            }
+            else
+                die("generr|Problema generale riposizionamenti");
+        }
     }
 
     $arrayResponse["riposizionamenti"]=$riposizionamenti;
     $arrayResponse["arrayOutput"]=$arrayOutput;
     $arrayResponse["listaLavorazioniSeparate"]=$listaLavorazioniSeparate;
-    //------------------------------------------------------------------------------------------
-
-    //CALCOLO DEI PRESSINI-----------------------------------------------------------------------
-    /*$x_pressini=getParametro("x_pressini",$conn);
-    $y_pressini=getParametro("y_pressini",$conn);*/
-    //getPressini();
-
-
     //------------------------------------------------------------------------------------------
 
     //GENERO IL FILE NC-------------------------------------------------------------------------
@@ -302,6 +379,7 @@
     //lavorazioni
     $c=1;
     $posizionePrecedente="";
+    $rotazionePrecedente=0;
     foreach($arrayResponse["listaLavorazioniSeparate"] as $listaLavorazioniSeparata)
     {
         $listaLavorazioniSeparataOutput=$listaLavorazioniSeparata["output"];
@@ -312,6 +390,16 @@
 
             $yPunzonataNC=get_string_w_2_decimal($lavorazione['yPunzonata']);
 
+            //scrivo la rotazione solo se è diversa da quella precedente
+            if($rotazionePrecedente!=$lavorazione['rotazione'])
+            {
+                $rotazioneNC="C".get_string_w_2_decimal($lavorazione['rotazione']);
+                $rotazionePrecedente=$lavorazione['rotazione'];
+            }
+            else
+                $rotazioneNC="";
+            if($rotazioneNC!="")
+                $rotazioneNC=" ".$rotazioneNC;
             //scrivo la posizione solo se è diversa da quella precedente
             if($posizionePrecedente!=$lavorazione['posizione'])
             {
@@ -323,7 +411,7 @@
             if($posizioneNC!="")
                 $posizioneNC=" ".$posizioneNC;
 
-            $rowOutputNC="X".$yPunzonataNC." Y".$xPunzonataNC.$posizioneNC;
+            $rowOutputNC="X".$yPunzonataNC." Y".$xPunzonataNC.$rotazioneNC.$posizioneNC;
             array_push($outputNC,$rowOutputNC);
 
             if($lavorazione["nRipetizioni"]!=1)
@@ -339,13 +427,13 @@
                 }
                 else
                 {
-                    if($orientamentoNC==0)
-                        $xPunzonataNC+=$spostamentoNC;
-                    if($orientamentoNC==180)
-                        $xPunzonataNC-=$spostamentoNC;
                     if($orientamentoNC==90)
-                        $yPunzonataNC+=$spostamentoNC;
+                        $xPunzonataNC+=$spostamentoNC;
                     if($orientamentoNC==270)
+                        $xPunzonataNC-=$spostamentoNC;
+                    if($orientamentoNC==0)
+                        $yPunzonataNC+=$spostamentoNC;
+                    if($orientamentoNC==180)
                         $yPunzonataNC-=$spostamentoNC;
                     $rowOutputNC="X".$yPunzonataNC." Y".$xPunzonataNC.$posizioneNC;
                     array_push($outputNC,$rowOutputNC);
@@ -369,10 +457,21 @@
         $c++;
     }
 
-    $rowOutputNC="FRM/X1250.00 Y1000.00";
-    array_push($outputNC,$rowOutputNC);
+    $x_fine_ciclo=getParametro("x_fine_ciclo",$conn);
+    $y_fine_ciclo=getParametro("y_fine_ciclo",$conn);
 
-    $rowOutputNC="X1250.00 Y1000.00 M30";
+    if(sizeof($arrayResponse["riposizionamenti"])>0)
+    {
+        $xM03=floatval($x_fine_ciclo)+$arrayResponse["riposizionamenti"][0]["valore"];
+
+        $rowOutputNC="X".$xM03." Y".$y_fine_ciclo." M03";
+        array_push($outputNC,$rowOutputNC);
+
+        $rowOutputNC="FRM/X$x_fine_ciclo Y$y_fine_ciclo";
+        array_push($outputNC,$rowOutputNC);
+    }
+
+    $rowOutputNC="X$x_fine_ciclo Y$y_fine_ciclo M30";
     array_push($outputNC,$rowOutputNC);
 
     $rowOutputNC="%";
@@ -390,9 +489,6 @@
 
     function getCoordinateM03($infoSviluppo,&$arrayResponse,$conn)
     {
-        /*$esclusioniX=$arrayResponse["esclusioni"]["X"];
-        $esclusioniY=$arrayResponse["esclusioni"]["Y"];*/
-
         $esclusioniPressini=[];
         $listaLavorazioni=$arrayResponse["lavorazioni"];
         foreach($listaLavorazioni as $lavorazione)
@@ -402,20 +498,21 @@
                 if($lavorazione["nomeLavorazione"]=="rettangolo")
                 {
                     $esclusione["min"]["x"]=$lavorazione["POSX"]-($lavorazione["DIMX"]/2);
-                    $esclusione["min"]["y"]=$lavorazione["POSY"]-($lavorazione["DIMY"]/2);
+                    $esclusione["min"]["y"]=$infoSviluppo["HALT"]-$lavorazione["POSY"]-($lavorazione["DIMY"]/2);
 
                     $esclusione["max"]["x"]=$lavorazione["POSX"]+($lavorazione["DIMX"]/2);
-                    $esclusione["max"]["y"]=$lavorazione["POSY"]+($lavorazione["DIMY"]/2);
+                    $esclusione["max"]["y"]=$infoSviluppo["HALT"]-$lavorazione["POSY"]+($lavorazione["DIMY"]/2);
+                    array_push($esclusioniPressini,$esclusione);
                 }
                 if($lavorazione["nomeLavorazione"]=="cerchio")
                 {
                     $esclusione["min"]["x"]=$lavorazione["POSX"]-($lavorazione["DIMX"]/2);
-                    $esclusione["min"]["y"]=$lavorazione["POSY"]-($lavorazione["DIMX"]/2);
+                    $esclusione["min"]["y"]=$infoSviluppo["HALT"]-$lavorazione["POSY"]-($lavorazione["DIMX"]/2);
 
                     $esclusione["max"]["x"]=$lavorazione["POSX"]+($lavorazione["DIMX"]/2);
-                    $esclusione["max"]["y"]=$lavorazione["POSY"]+($lavorazione["DIMX"]/2);
+                    $esclusione["max"]["y"]=$infoSviluppo["HALT"]-$lavorazione["POSY"]+($lavorazione["DIMX"]/2);
+                    array_push($esclusioniPressini,$esclusione);
                 }
-                array_push($esclusioniPressini,$esclusione);
             }
         }
 
@@ -423,8 +520,9 @@
         $y_pressini=getParametro("y_pressini",$conn);
 
         $raggio_pressini=getParametro("raggio_pressini",$conn);
+        $arretramento_y=floatval(getParametro("arretramento_y_".$infoSviluppo["TIPO"],$conn));
 
-        $xM03_iniziale=$infoSviluppo["LUNG"]/2;
+        $xM03_iniziale=($infoSviluppo["LUNG"]/2)-$arretramento_y;
         $yM03_iniziale=$infoSviluppo["HALT"]/2;
 
         $array_spostamenti_pressini_s=explode(";",getParametro("array_spostamenti_pressini",$conn));
@@ -486,7 +584,7 @@
                     $help=false;
                     break 1;
                 }
-                //-----------------------------------
+                //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 if($p1["x"]["min"]>$esclusione["min"]["x"] && $p1["x"]["min"]<$esclusione["max"]["x"] && $p1["y"]["max"]>$esclusione["min"]["y"] && $p1["y"]["max"]<$esclusione["max"]["y"])
                 {
                     $help=false;
@@ -514,13 +612,11 @@
 
             $i++;
         }
-        
-        /* dev only
-        $arrayResponse["xM03"]=$xM03;
-        $arrayResponse["yM03"]=$yM03;
-        $arrayResponse["esclusioniPressini"]=$esclusioniPressini;
-        */
-        return [$xM03,$yM03];
+
+        //invertito
+        return [$yM03,$xM03];
+        //normale
+        //return [$xM03,$yM03];
     }
     function createFile($configurazione,$sviluppo,$outputNC,$conn)
     {
@@ -593,16 +689,21 @@
     function posizione($a, $b) {
         return strcmp($a["posizione"], $b["posizione"]);
     }
-    function getRiposizionamenti($listaLavorazioni,&$arrayResponse,$conn)
+    function getRiposizionamenti($infoSviluppo,$listaLavorazioni,&$arrayResponse,$conn)
     {
+        $x_fine_ciclo=floatval(getParametro("x_fine_ciclo",$conn));
+
         $riposizionamentiArray=[];
 
-        $riposizionamento["valore"]=930;
-        $riposizionamento["verso"]="X";
+        if($infoSviluppo["HALT"]>$x_fine_ciclo)
+        {
+            $riposizionamento["valore"]=$infoSviluppo["HALT"]-$x_fine_ciclo;
+            $riposizionamento["verso"]="X";
 
-        array_push($riposizionamentiArray,$riposizionamento);
+            array_push($riposizionamentiArray,$riposizionamento);
+        }
 
-        checkRiposizionamenti($riposizionamento,$riposizionamentiArray,$listaLavorazioni,$arrayResponse,$conn);
+        //checkRiposizionamenti($riposizionamento,$riposizionamentiArray,$listaLavorazioni,$arrayResponse,$conn);
 
         return $riposizionamentiArray;
     }
@@ -859,90 +960,99 @@
                 die("parerr|Parametro [".$nome."] non trovato"); 
         }
     }
-    function lavorazioneScantonatura($punzoneCorrente,$lavorazioni,&$arrayResponse,$conn,$infoSviluppo)
+    function lavorazioneScantonatura($lavorazioni,&$arrayResponse,$conn,$infoSviluppo)
     {
         $n=sizeof($arrayResponse["lavorazioni"]);
+
+        $arretramento_x=floatval(getParametro("arretramento_x_".$infoSviluppo['TIPO'],$conn));
+        $arretramento_y=floatval(getParametro("arretramento_y_".$infoSviluppo['TIPO'],$conn));
+
         foreach($lavorazioni as $lavorazione)
         {
-            if(isset($arrayLavorazioneResponse["lato"]) && $arrayLavorazioneResponse["lato"]==$lavorazione['lato'])
+            if($lavorazione['lato']=="AD" || $lavorazione['lato']=="AS" || $lavorazione['lato']=="BD" || $lavorazione['lato']=="BS")
             {
-                $istruzione["posizione"]=$punzoneCorrente["posizione"];
-                if($lavorazione['lato']=="AD")
-                {
-                    $istruzione["xPunzonata"]=$infoSviluppo["LUNG"]+$lavorazione['POSX'];
-                    $istruzione["yPunzonata"]=$infoSviluppo["HALT"]+$lavorazione['POSY'];
-                }
-                if($lavorazione['lato']=="AS")
-                {
-                    $istruzione["xPunzonata"]=$lavorazione['POSX'];
-                    $istruzione["yPunzonata"]=$infoSviluppo["HALT"]+$lavorazione['POSY'];
-                }
-                if($lavorazione['lato']=="BD")
-                {
-                    $istruzione["xPunzonata"]=$infoSviluppo["LUNG"]+$lavorazione['POSX'];
-                    $istruzione["yPunzonata"]=$lavorazione['POSY'];
-                }
-                if($lavorazione['lato']=="BS")
-                {
-                    $istruzione["xPunzonata"]=$lavorazione['POSX'];
-                    $istruzione["yPunzonata"]=$lavorazione['POSY'];
-                }
-                
-                $istruzione["rotazione"]=$lavorazione['rotazione'];
-                $istruzione["orientamento"]=$lavorazione['orientamento'];
-                $istruzione["nRipetizioni"]=$lavorazione['ripetizioni'];
-                $istruzione["spostamento"]=$lavorazione['spostamento'];
-                
-                array_push($output,$istruzione);
+                $punzoneCorrente=$lavorazione["punzone"];
 
-                $arrayResponse["lavorazioni"][$n-1]["output"]=$output;
-            }
-            else
-            {
-                $output=[];
-        
-                $arrayLavorazioneResponse["tipoLavorazione"]="scantonatura";
-                $arrayLavorazioneResponse["punzone"]=$punzoneCorrente;
-                $arrayLavorazioneResponse["tipo"]=$lavorazione['tipo'];
-                $arrayLavorazioneResponse["lato"]=$lavorazione['lato'];                
-
-                $istruzione["posizione"]=$punzoneCorrente["posizione"];
-                if($lavorazione['lato']=="AD")
+                if(isset($arrayLavorazioneResponse["lato"]) && $arrayLavorazioneResponse["lato"]==$lavorazione['lato'])
                 {
-                    $istruzione["xPunzonata"]=$infoSviluppo["LUNG"]+$lavorazione['POSX'];
-                    $istruzione["yPunzonata"]=$infoSviluppo["HALT"]+$lavorazione['POSY'];
+                    $istruzione["posizione"]=$punzoneCorrente["posizione"];
+                    if($lavorazione['lato']=="AD")
+                    {
+                        $istruzione["xPunzonata"]=$infoSviluppo["LUNG"]+$lavorazione['POSX'];
+                        $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$infoSviluppo["HALT"]+$lavorazione['POSY'];
+                    }
+                    if($lavorazione['lato']=="AS")
+                    {
+                        $istruzione["xPunzonata"]=$lavorazione['POSX'];
+                        $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$infoSviluppo["HALT"]+$lavorazione['POSY'];
+                    }
+                    if($lavorazione['lato']=="BD")
+                    {
+                        $istruzione["xPunzonata"]=$infoSviluppo["LUNG"]+$lavorazione['POSX'];
+                        $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$lavorazione['POSY'];
+                    }
+                    if($lavorazione['lato']=="BS")
+                    {
+                        $istruzione["xPunzonata"]=$lavorazione['POSX'];
+                        $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$lavorazione['POSY'];
+                    }
+                    
+                    $istruzione["rotazione"]=$lavorazione['rotazione'];
+                    $istruzione["orientamento"]=$lavorazione['orientamento'];
+                    $istruzione["nRipetizioni"]=$lavorazione['ripetizioni'];
+                    $istruzione["spostamento"]=$lavorazione['spostamento'];
+                    
+                    array_push($output,$istruzione);
+
+                    $arrayResponse["lavorazioni"][$n-1]["output"]=$output;
                 }
-                if($lavorazione['lato']=="AS")
+                else
                 {
-                    $istruzione["xPunzonata"]=$lavorazione['POSX'];
-                    $istruzione["yPunzonata"]=$infoSviluppo["HALT"]+$lavorazione['POSY'];
+                    $output=[];
+            
+                    $arrayLavorazioneResponse["tipoLavorazione"]="scantonatura";
+                    $arrayLavorazioneResponse["punzone"]=$punzoneCorrente;
+                    $arrayLavorazioneResponse["tipo"]=$lavorazione['tipo'];
+                    $arrayLavorazioneResponse["lato"]=$lavorazione['lato'];                
+
+                    $istruzione["posizione"]=$punzoneCorrente["posizione"];
+                    if($lavorazione['lato']=="AD")
+                    {
+                        $istruzione["xPunzonata"]=$infoSviluppo["LUNG"]+$lavorazione['POSX'];
+                        $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$infoSviluppo["HALT"]+$lavorazione['POSY'];
+                    }
+                    if($lavorazione['lato']=="AS")
+                    {
+                        $istruzione["xPunzonata"]=$lavorazione['POSX'];
+                        $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$infoSviluppo["HALT"]+$lavorazione['POSY'];
+                    }
+                    if($lavorazione['lato']=="BD")
+                    {
+                        $istruzione["xPunzonata"]=$infoSviluppo["LUNG"]+$lavorazione['POSX'];
+                        $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$lavorazione['POSY'];
+                    }
+                    if($lavorazione['lato']=="BS")
+                    {
+                        $istruzione["xPunzonata"]=$lavorazione['POSX'];
+                        $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$lavorazione['POSY'];
+                    }
+                    
+                    $istruzione["rotazione"]=$lavorazione['rotazione'];
+                    $istruzione["orientamento"]=$lavorazione['orientamento'];
+                    $istruzione["nRipetizioni"]=$lavorazione['ripetizioni'];
+                    $istruzione["spostamento"]=$lavorazione['spostamento'];
+                    
+                    array_push($output,$istruzione);
+
+                    $nIstruzioni=sizeof($output);
+
+                    $arrayLavorazioneResponse["nIstruzioni"]=$nIstruzioni;
+                    $arrayLavorazioneResponse["output"]=$output;
+
+                    array_push($arrayResponse["lavorazioni"],$arrayLavorazioneResponse);
+
+                    $n++;
                 }
-                if($lavorazione['lato']=="BD")
-                {
-                    $istruzione["xPunzonata"]=$infoSviluppo["LUNG"]+$lavorazione['POSX'];
-                    $istruzione["yPunzonata"]=$lavorazione['POSY'];
-                }
-                if($lavorazione['lato']=="BS")
-                {
-                    $istruzione["xPunzonata"]=$lavorazione['POSX'];
-                    $istruzione["yPunzonata"]=$lavorazione['POSY'];
-                }
-                
-                $istruzione["rotazione"]=$lavorazione['rotazione'];
-                $istruzione["orientamento"]=$lavorazione['orientamento'];
-                $istruzione["nRipetizioni"]=$lavorazione['ripetizioni'];
-                $istruzione["spostamento"]=$lavorazione['spostamento'];
-                
-                array_push($output,$istruzione);
-
-                $nIstruzioni=sizeof($output);
-
-                $arrayLavorazioneResponse["nIstruzioni"]=$nIstruzioni;
-                $arrayLavorazioneResponse["output"]=$output;
-
-                array_push($arrayResponse["lavorazioni"],$arrayLavorazioneResponse);
-
-                $n++;
             }
         }
     }
@@ -977,13 +1087,13 @@
         $xp2=$xp1;
         $yp2=$lavorazione['POSY']-($larghezza_microgiunture/2)-($punzoneCorrente["dx"]/2);
 
-        $dist_p1_p2=($yp2-$yp1)+$punzoneCorrente["dx"];
+        $dist_p1_p2=($yp2-$yp1);
 
         $n_colpi_minimo=$dist_p1_p2/($punzoneCorrente["sovrapposizionex"]);
 
-        $n_colpi=(intval($n_colpi_minimo));
+        $n_colpi=(intval($n_colpi_minimo))+1;
 
-        $distanza=($yp2-$yp1)/($n_colpi);
+        $distanza=($yp2-$yp1)/($n_colpi-1);
 
         //orrizzontali
 
@@ -993,21 +1103,24 @@
         $xp4=$lavorazione['POSX']-($larghezza_microgiunture/2)-($punzoneCorrente["dx"]/2);
         $yp4=$yp3;
 
-        $dist_p4_p3=($xp4-$xp3)+$punzoneCorrente["dx"];
+        $dist_p4_p3=($xp4-$xp3);
 
         $n_colpi_minimo2=$dist_p4_p3/($punzoneCorrente["sovrapposizionex"]);
 
-        $n_colpi2=(intval($n_colpi_minimo2));
+        $n_colpi2=(intval($n_colpi_minimo2))+1;
 
-        $distanza2=($xp4-$xp3)/($n_colpi2);
+        $distanza2=($xp4-$xp3)/($n_colpi2-1);
+
+        $arretramento_x=floatval(getParametro("arretramento_x_".$infoSviluppo['TIPO'],$conn));
+        $arretramento_y=floatval(getParametro("arretramento_y_".$infoSviluppo['TIPO'],$conn));
 
         //orrizzontali-----------------------------------------------------------------------------------
         //basso sinistra
         $istruzione["posizione"]=$punzoneCorrente["posizione"];
-        $istruzione["xPunzonata"]=$xp3;
-        $istruzione["yPunzonata"]=$yp3;
-        $istruzione["orientamento"]="0";
-        $istruzione["rotazione"]="0";
+        $istruzione["xPunzonata"]=$xp3+$arretramento_x;
+        $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$yp3+$arretramento_y;
+        $istruzione["orientamento"]="90";
+        $istruzione["rotazione"]="90";
         $istruzione["nRipetizioni"]=$n_colpi2;
         $istruzione["spostamento"]=$distanza2;
 
@@ -1015,10 +1128,10 @@
 
         //basso destra
         $istruzione["posizione"]=$punzoneCorrente["posizione"];
-        $istruzione["xPunzonata"]=($xp3+$lavorazione['DIMX']-$punzoneCorrente["dx"]);
-        $istruzione["yPunzonata"]=$yp3;
-        $istruzione["orientamento"]="180";
-        $istruzione["rotazione"]="0";
+        $istruzione["xPunzonata"]=($xp3+$lavorazione['DIMX']-$punzoneCorrente["dx"])+$arretramento_x;
+        $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$yp3+$arretramento_y;
+        $istruzione["orientamento"]="270";
+        $istruzione["rotazione"]="90";
         $istruzione["nRipetizioni"]=$n_colpi2;
         $istruzione["spostamento"]=$distanza2;
 
@@ -1026,10 +1139,10 @@
 
         //alto sinistra
         $istruzione["posizione"]=$punzoneCorrente["posizione"];
-        $istruzione["xPunzonata"]=$xp3;
-        $istruzione["yPunzonata"]=($yp3+$lavorazione['DIMY']-$punzoneCorrente["dy"]);
-        $istruzione["orientamento"]="0";
-        $istruzione["rotazione"]="0";
+        $istruzione["xPunzonata"]=$xp3+$arretramento_x;
+        $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-($yp3+$lavorazione['DIMY']-$punzoneCorrente["dy"])+$arretramento_y;
+        $istruzione["orientamento"]="90";
+        $istruzione["rotazione"]="90";
         $istruzione["nRipetizioni"]=$n_colpi2;
         $istruzione["spostamento"]=$distanza2;
 
@@ -1037,10 +1150,10 @@
 
         //alto destra
         $istruzione["posizione"]=$punzoneCorrente["posizione"];
-        $istruzione["xPunzonata"]=($xp3+$lavorazione['DIMX']-$punzoneCorrente["dx"]);
-        $istruzione["yPunzonata"]=($yp3+$lavorazione['DIMY']-$punzoneCorrente["dy"]);
-        $istruzione["orientamento"]="180";
-        $istruzione["rotazione"]="0";
+        $istruzione["xPunzonata"]=($xp3+$lavorazione['DIMX']-$punzoneCorrente["dx"])+$arretramento_x;
+        $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-($yp3+$lavorazione['DIMY']-$punzoneCorrente["dy"])+$arretramento_y;
+        $istruzione["orientamento"]="270";
+        $istruzione["rotazione"]="90";
         $istruzione["nRipetizioni"]=$n_colpi2;
         $istruzione["spostamento"]=$distanza2;
 
@@ -1049,10 +1162,10 @@
         //verticali-----------------------------------------------------------------------------------
         //basso sinistra
         $istruzione["posizione"]=$punzoneCorrente["posizione"];
-        $istruzione["xPunzonata"]=$xp1;
-        $istruzione["yPunzonata"]=$yp1;
-        $istruzione["orientamento"]="270";
-        $istruzione["rotazione"]="90";
+        $istruzione["xPunzonata"]=$xp1+$arretramento_x;
+        $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$yp1+$arretramento_y;
+        $istruzione["orientamento"]="180";
+        $istruzione["rotazione"]="0";
         $istruzione["nRipetizioni"]=$n_colpi;
         $istruzione["spostamento"]=$distanza;
         
@@ -1060,10 +1173,10 @@
 
         //alto sinistra
         $istruzione["posizione"]=$punzoneCorrente["posizione"];
-        $istruzione["xPunzonata"]=$xp1;
-        $istruzione["yPunzonata"]=($yp1+$lavorazione['DIMY']-$punzoneCorrente["dx"]);
-        $istruzione["orientamento"]="90";
-        $istruzione["rotazione"]="90";
+        $istruzione["xPunzonata"]=$xp1+$arretramento_x;
+        $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-($yp1+$lavorazione['DIMY']-$punzoneCorrente["dx"])+$arretramento_y;
+        $istruzione["orientamento"]="0";
+        $istruzione["rotazione"]="0";
         $istruzione["nRipetizioni"]=$n_colpi;
         $istruzione["spostamento"]=$distanza;
 
@@ -1071,10 +1184,10 @@
 
         //basso destra
         $istruzione["posizione"]=$punzoneCorrente["posizione"];
-        $istruzione["xPunzonata"]=($xp1+$lavorazione['DIMX']-$punzoneCorrente["dy"]);
-        $istruzione["yPunzonata"]=$yp1;
-        $istruzione["orientamento"]="270";
-        $istruzione["rotazione"]="90";
+        $istruzione["xPunzonata"]=($xp1+$lavorazione['DIMX']-$punzoneCorrente["dy"])+$arretramento_x;
+        $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$yp1+$arretramento_y;
+        $istruzione["orientamento"]="180";
+        $istruzione["rotazione"]="0";
         $istruzione["nRipetizioni"]=$n_colpi;
         $istruzione["spostamento"]=$distanza;
         
@@ -1082,10 +1195,10 @@
 
         //alto destra
         $istruzione["posizione"]=$punzoneCorrente["posizione"];
-        $istruzione["xPunzonata"]=($xp1+$lavorazione['DIMX']-$punzoneCorrente["dy"]);
-        $istruzione["yPunzonata"]=($yp1+$lavorazione['DIMY']-$punzoneCorrente["dx"]);
-        $istruzione["orientamento"]="270";
-        $istruzione["rotazione"]="90";
+        $istruzione["xPunzonata"]=($xp1+$lavorazione['DIMX']-$punzoneCorrente["dy"])+$arretramento_x;
+        $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-($yp1+$lavorazione['DIMY']-$punzoneCorrente["dx"])+$arretramento_y;
+        $istruzione["orientamento"]="0";
+        $istruzione["rotazione"]="0";
         $istruzione["nRipetizioni"]=$n_colpi;
         $istruzione["spostamento"]=$distanza;
 
@@ -1138,6 +1251,10 @@
                 $helpArea=$punzone["area"];
             }
         }
+        if($punzoneCorrente==null)
+        {
+            die("generr|Non esiste un punzone per questa lavorazione in questa configurazione");
+        }
         $punzoneCorrente["sovrapposizionex"]=($punzoneCorrente["dx"]*(100-$punzoneCorrente["ix"]))/100;
         $punzoneCorrente["sovrapposizioney"]=($punzoneCorrente["dy"]*(100-$punzoneCorrente["iy"]))/100;
 
@@ -1156,15 +1273,18 @@
         $spostamentoY=($coordinateUltimaPunzonataRigaN["y"]-$coordinatePrimaPunzonataRiga1["y"])/($nPunzonateY+1);
         $spostamentoX=($coordinateUltimaPunzonataRigaN["x"]-$coordinatePrimaPunzonataRiga1["x"])/($nPunzonateX+1);
 
+        $arretramento_x=floatval(getParametro("arretramento_x_".$infoSviluppo['TIPO'],$conn));
+        $arretramento_y=floatval(getParametro("arretramento_y_".$infoSviluppo['TIPO'],$conn));
+
         if($nPunzonateX>=$nPunzonateY)
         {
             $yPunzonata=$coordinatePrimaPunzonataRiga1["y"];
             for ($i = 0; $i < $nPunzonateY+2; $i++)
             {
                 $istruzione["posizione"]=$punzoneCorrente["posizione"];
-                $istruzione["xPunzonata"]=$coordinatePrimaPunzonataRiga1["x"];
-                $istruzione["yPunzonata"]=$yPunzonata;
-                $istruzione["orientamento"]="0";
+                $istruzione["xPunzonata"]=$coordinatePrimaPunzonataRiga1["x"]+$arretramento_x;
+                $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$yPunzonata+$arretramento_y;
+                $istruzione["orientamento"]="90";
                 $istruzione["rotazione"]="0";
                 
                 if($nPunzonateX==0)
@@ -1192,9 +1312,9 @@
             for ($i = 0; $i < $nPunzonateX+2; $i++)
             {
                 $istruzione["posizione"]=$punzoneCorrente["posizione"];
-                $istruzione["yPunzonata"]=$coordinatePrimaPunzonataRiga1["y"];
-                $istruzione["xPunzonata"]=$xPunzonata;
-                $istruzione["orientamento"]="90";
+                $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$coordinatePrimaPunzonataRiga1["y"]+$arretramento_y;
+                $istruzione["xPunzonata"]=$xPunzonata+$arretramento_x;
+                $istruzione["orientamento"]="180";
                 $istruzione["rotazione"]="0";
                 
                 if($nPunzonateY==0)
@@ -1249,12 +1369,19 @@
         }
 
         $punzoneCorrente=get_object_by_prop_value($punzoniPossibili,"dx","max");
+        if($punzoneCorrente==null)
+        {
+            die("generr|Non esiste un punzone per questa lavorazione in questa configurazione");
+        }
+
+        $arretramento_x=floatval(getParametro("arretramento_x_".$infoSviluppo['TIPO'],$conn));
+        $arretramento_y=floatval(getParametro("arretramento_y_".$infoSviluppo['TIPO'],$conn));
 
         if($punzoneCorrente["dx"]==$lavorazione["DIMX"])
         {
             $istruzione["posizione"]=$punzoneCorrente["posizione"];
-            $istruzione["xPunzonata"]=$lavorazione["POSX"];
-            $istruzione["yPunzonata"]=$lavorazione["POSY"];
+            $istruzione["xPunzonata"]=$lavorazione["POSX"]+$arretramento_x;
+            $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$lavorazione["POSY"]+$arretramento_y;
             $istruzione["orientamento"]="0";
             $istruzione["rotazione"]="0";
             $istruzione["nRipetizioni"]="1";
@@ -1276,8 +1403,8 @@
                 $generato=true;
 
                 $istruzione["posizione"]=$punzoneCorrente["posizione"];
-                $istruzione["xPunzonata"]=$lavorazione["POSX"]-(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2);
-                $istruzione["yPunzonata"]=$lavorazione["POSY"];
+                $istruzione["xPunzonata"]=$lavorazione["POSX"]-(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2)+$arretramento_x;
+                $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$lavorazione["POSY"]+$arretramento_y;
                 $istruzione["orientamento"]="0";
                 $istruzione["rotazione"]="0";
                 $istruzione["nRipetizioni"]="1";
@@ -1286,8 +1413,8 @@
                 array_push($output,$istruzione);
 
                 $istruzione["posizione"]=$punzoneCorrente["posizione"];
-                $istruzione["xPunzonata"]=$lavorazione["POSX"]+(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2);
-                $istruzione["yPunzonata"]=$lavorazione["POSY"];
+                $istruzione["xPunzonata"]=$lavorazione["POSX"]+(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2)+$arretramento_x;
+                $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$lavorazione["POSY"]+$arretramento_y;
                 $istruzione["orientamento"]="0";
                 $istruzione["rotazione"]="0";
                 $istruzione["nRipetizioni"]="1";
@@ -1296,8 +1423,8 @@
                 array_push($output,$istruzione);
 
                 $istruzione["posizione"]=$punzoneCorrente["posizione"];
-                $istruzione["xPunzonata"]=$lavorazione["POSX"];
-                $istruzione["yPunzonata"]=$lavorazione["POSY"]+(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2);
+                $istruzione["xPunzonata"]=$lavorazione["POSX"]+$arretramento_x;
+                $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$lavorazione["POSY"]+(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2)+$arretramento_y;
                 $istruzione["orientamento"]="0";
                 $istruzione["rotazione"]="0";
                 $istruzione["nRipetizioni"]="1";
@@ -1306,8 +1433,8 @@
                 array_push($output,$istruzione);
 
                 $istruzione["posizione"]=$punzoneCorrente["posizione"];
-                $istruzione["xPunzonata"]=$lavorazione["POSX"];
-                $istruzione["yPunzonata"]=$lavorazione["POSY"]-(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2);
+                $istruzione["xPunzonata"]=$lavorazione["POSX"]+$arretramento_x;
+                $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$lavorazione["POSY"]-(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2)+$arretramento_y;
                 $istruzione["orientamento"]="0";
                 $istruzione["rotazione"]="0";
                 $istruzione["nRipetizioni"]="1";
@@ -1321,8 +1448,8 @@
                 $generato=true;
                 
                 $istruzione["posizione"]=$punzoneCorrente["posizione"];
-                $istruzione["xPunzonata"]=$lavorazione["POSX"]-(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2);
-                $istruzione["yPunzonata"]=$lavorazione["POSY"];
+                $istruzione["xPunzonata"]=$lavorazione["POSX"]-(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2)+$arretramento_x;
+                $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$lavorazione["POSY"]+$arretramento_y;
                 $istruzione["orientamento"]="0";
                 $istruzione["rotazione"]="0";
                 $istruzione["nRipetizioni"]="1";
@@ -1331,8 +1458,8 @@
                 array_push($output,$istruzione);
 
                 $istruzione["posizione"]=$punzoneCorrente["posizione"];
-                $istruzione["xPunzonata"]=$lavorazione["POSX"]+(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2);
-                $istruzione["yPunzonata"]=$lavorazione["POSY"];
+                $istruzione["xPunzonata"]=$lavorazione["POSX"]+(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2)+$arretramento_x;
+                $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$lavorazione["POSY"]+$arretramento_y;
                 $istruzione["orientamento"]="0";
                 $istruzione["rotazione"]="0";
                 $istruzione["nRipetizioni"]="1";
@@ -1341,8 +1468,8 @@
                 array_push($output,$istruzione);
 
                 $istruzione["posizione"]=$punzoneCorrente["posizione"];
-                $istruzione["xPunzonata"]=$lavorazione["POSX"];
-                $istruzione["yPunzonata"]=$lavorazione["POSY"]+(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2);
+                $istruzione["xPunzonata"]=$lavorazione["POSX"]+$arretramento_x;
+                $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$lavorazione["POSY"]+(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2)+$arretramento_y;
                 $istruzione["orientamento"]="0";
                 $istruzione["rotazione"]="0";
                 $istruzione["nRipetizioni"]="1";
@@ -1351,8 +1478,8 @@
                 array_push($output,$istruzione);
 
                 $istruzione["posizione"]=$punzoneCorrente["posizione"];
-                $istruzione["xPunzonata"]=$lavorazione["POSX"];
-                $istruzione["yPunzonata"]=$lavorazione["POSY"]-(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2);
+                $istruzione["xPunzonata"]=$lavorazione["POSX"]+$arretramento_x;
+                $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$lavorazione["POSY"]-(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2)+$arretramento_y;
                 $istruzione["orientamento"]="0";
                 $istruzione["rotazione"]="0";
                 $istruzione["nRipetizioni"]="1";
@@ -1361,8 +1488,8 @@
                 array_push($output,$istruzione);
 
                 $istruzione["posizione"]=$punzoneCorrente["posizione"];
-                $istruzione["xPunzonata"]=$lavorazione["POSX"]-(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2.82);
-                $istruzione["yPunzonata"]=$lavorazione["POSY"]-(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2.82);
+                $istruzione["xPunzonata"]=$lavorazione["POSX"]-(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2.82)+$arretramento_x;
+                $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$lavorazione["POSY"]-(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2.82)+$arretramento_y;
                 $istruzione["orientamento"]="0";
                 $istruzione["rotazione"]="0";
                 $istruzione["nRipetizioni"]="1";
@@ -1371,8 +1498,8 @@
                 array_push($output,$istruzione);
 
                 $istruzione["posizione"]=$punzoneCorrente["posizione"];
-                $istruzione["xPunzonata"]=$lavorazione["POSX"]-(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2.82);
-                $istruzione["yPunzonata"]=$lavorazione["POSY"]+(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2.82);
+                $istruzione["xPunzonata"]=$lavorazione["POSX"]-(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2.82)+$arretramento_x;
+                $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$lavorazione["POSY"]+(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2.82)+$arretramento_y;
                 $istruzione["orientamento"]="0";
                 $istruzione["rotazione"]="0";
                 $istruzione["nRipetizioni"]="1";
@@ -1381,8 +1508,8 @@
                 array_push($output,$istruzione);
 
                 $istruzione["posizione"]=$punzoneCorrente["posizione"];
-                $istruzione["xPunzonata"]=$lavorazione["POSX"]+(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2.82);
-                $istruzione["yPunzonata"]=$lavorazione["POSY"]+(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2.82);
+                $istruzione["xPunzonata"]=$lavorazione["POSX"]+(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2.82)+$arretramento_x;
+                $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$lavorazione["POSY"]+(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2.82)+$arretramento_y;
                 $istruzione["orientamento"]="0";
                 $istruzione["rotazione"]="0";
                 $istruzione["nRipetizioni"]="1";
@@ -1391,8 +1518,8 @@
                 array_push($output,$istruzione);
 
                 $istruzione["posizione"]=$punzoneCorrente["posizione"];
-                $istruzione["xPunzonata"]=$lavorazione["POSX"]+(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2.82);
-                $istruzione["yPunzonata"]=$lavorazione["POSY"]-(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2.82);
+                $istruzione["xPunzonata"]=$lavorazione["POSX"]+(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2.82)+$arretramento_x;
+                $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$lavorazione["POSY"]-(($lavorazione["DIMX"]-$punzoneCorrente["dx"])/2.82)+$arretramento_y;
                 $istruzione["orientamento"]="0";
                 $istruzione["rotazione"]="0";
                 $istruzione["nRipetizioni"]="1";

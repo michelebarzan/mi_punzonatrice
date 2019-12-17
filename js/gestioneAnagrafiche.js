@@ -62,6 +62,10 @@
                             label:"rettangolo"
                         },
                         {
+                            value:"triangolo",
+                            label:"triangolo"
+                        },
+                        {
                             value:"asola",
                             label:"asola"
                         }
@@ -123,6 +127,19 @@
                 container:'containerSommarioArchivi',
                 readOnlyColumns:['id_punzone','nome'],
 				noInsertColumns:['id_punzone','nome'],
+                orderBy:orderBy,
+                orderType:orderType
+            });
+        }
+        if(table=="scantonature")
+        {
+            getEditableTable
+            ({
+                table:'scantonature',
+                editable: true,
+                container:'containerSommarioArchivi',
+                readOnlyColumns:['id_scantonatura'],
+				noInsertColumns:['id_scantonatura'],
                 orderBy:orderBy,
                 orderType:orderType
             });
@@ -467,6 +484,11 @@
                             liAltriPunzoni.setAttribute("style","border-radius:2px;");
                             liAltriPunzoni.innerHTML=punzone.dx+"X"+punzone.dy;
                         }
+                        if(punzone.forma=="triangolo")
+                        {
+                            liAltriPunzoni.setAttribute("style","background-color:transparent;border-bottom: solid 20px white;border-left: solid 20px transparent;border-right: solid 20px transparent;");
+                            liAltriPunzoni.innerHTML=punzone.angolo;
+                        }
 
                         ulAltriPunzoni.appendChild(liAltriPunzoni);
                     });
@@ -627,6 +649,11 @@
                         {
                             liPunzoniConfigurazione.setAttribute("style","border-radius:2px;");
                             liPunzoniConfigurazione.innerHTML=punzone.dx+"X"+punzone.dy;
+                        }
+                        if(punzone.forma=="triangolo")
+                        {
+                            liPunzoniConfigurazione.setAttribute("style","border-radius:43px;");
+                            liPunzoniConfigurazione.innerHTML=punzone.angolo;
                         }
                         document.getElementById("posizioniPunzoniTorretta"+punzone.posizione).appendChild(liPunzoniConfigurazione);
                     });
