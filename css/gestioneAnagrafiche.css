@@ -442,3 +442,24 @@
 	border-radius: 50%;
 	border:1px solid #2B586F;
 }
+#btnManualeScantonature
+{
+	display: none;
+	text-decoration: none;
+}
+#btnManualeScantonature:link
+{
+	color: black;
+}
+#btnManualeScantonature:visited
+{
+	color: black;
+}
+#btnManualeScantonature:hover
+{
+	color: black;
+}
+#btnManualeScantonature:active
+{
+	color: black;
+}

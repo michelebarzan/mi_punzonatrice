@@ -220,7 +220,7 @@ textarea.popupNuovoGruppoInput
 {
 	float: left;
 	display: block;
-	width:400px;
+	width:440px;
 	
 }
 .itemSviluppoDatoIconButton
@@ -339,6 +339,97 @@ textarea.popupNuovoGruppoInput
 {
 	cursor:not-allowed;
 	color:gray;
+}
+.material-design-table-dark
+{
+	background-color: #3D3D47;
+	border-radius:3px;
+	margin-top:20px;
+	margin-bottom:10px;
+	margin-right:20px;
+	margin-left:20px;
+	border-collapse: collapse;
+	width: calc(100% - 40px);
+	box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+}
+.proprieta-grafico-table-border-right
+{
+	border-right: 1px solid #4C4C50;
+}
+.material-design-table-dark thead tr
+{
+	transition: all 0.5s cubic-bezier(.25,.8,.25,1);
+}
+.material-design-table-dark th
+{
+	padding:20px 30px;
+	color:#aaa;
+	text-align: left;
+	font-size:12px;
+	font-family: 'Montserrat',sans-serif;
+}
+.material-design-table-dark td 
+{
+	padding:20px 30px;
+	color:#ddd;
+	text-align: left;
+	font-size:12px;
+	font-family: 'Montserrat',sans-serif;
+}
+.material-design-table-dark input[type=text],.material-design-table-dark input[type=number],.material-design-table-dark select
+{
+	height:25px;
+	width:80px;
+	border-radius:2px;
+	background-color: #464651;
+	border:1px solid #606062;
+	outline:none;
+	padding:5px;
+	color:#ddd;
+	text-align: left;
+	font-size:12px;
+	float:left;
+	display: inline-block;
+}
+.material-design-table-dark input[type=color]
+{
+	height:25px;
+	width:80px;
+	border-radius:2px;
+	border:1px solid #606062;
+	background-color: #464651;
+	outline:none;
+	padding:2px;
+	float:left;
+	display: inline-block;
+}
+.material-design-table-dark tbody tr
+{
+	transition: all 0.5s cubic-bezier(.25,.8,.25,1);
+	/*border-top: 1px solid #4C4C50;*/
+}
+.material-design-table-dark tbody tr:hover,.material-design-table-dark thead tr:hover
+{
+	background-color: #464651;
+}
+.material-design-table-dark select
+{
+	height:25px;
+	border-radius:2px;
+	padding:5px;
+	border:none;
+	background-color: transparent;
+	outline:none;
+	float:left;
+	display: block;
+	cursor: pointer;
+	transition: all 0.5s cubic-bezier(.25,.8,.25,1);
+	font-family: 'Montserrat',sans-serif;
+	border-bottom: 2px solid #363640;
+}
+.material-design-table-dark select:hover
+{
+	border-bottom: 2px solid #363640;
 }
 /*-----------------------------------*/
 .pure-material-checkbox {
@@ -485,3 +576,66 @@ textarea.popupNuovoGruppoInput
     border-color: transparent;
     background-color: currentColor;
 }
+/*material radio button--------------------------------------------*/
+/* The container */
+.material-radio-button-container {
+	display: block;
+	position: relative;
+	padding-left: 25px;
+	cursor: pointer;
+	font-size: 13px;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+  }
+  
+  /* Hide the browser's default radio button */
+  .material-radio-button-container input {
+	position: absolute;
+	opacity: 0;
+	cursor: pointer;
+  }
+  
+  /* Create a custom radio button */
+  .material-radio-button-checkmark {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 17px;
+	width: 17px;
+	background-color: #eee;
+	border-radius: 50%;
+  }
+  
+  /* On mouse-over, add a grey background color */
+  .material-radio-button-container:hover input ~ .material-radio-button-checkmark {
+	background-color: #ccc;
+  }
+  
+  /* When the radio button is checked, add a blue background */
+  .material-radio-button-container input:checked ~ .material-radio-button-checkmark {
+	background-color: #2196F3;
+  }
+  
+  /* Create the indicator (the dot/circle - hidden when not checked) */
+  .material-radio-button-checkmark:after {
+	content: "";
+	position: absolute;
+	display: none;
+  }
+  
+  /* Show the indicator (dot/circle) when checked */
+  .material-radio-button-container input:checked ~ .material-radio-button-checkmark:after {
+	display: block;
+  }
+  
+  /* Style the indicator (dot/circle) */
+  .material-radio-button-container .material-radio-button-checkmark:after {
+	  top: 6px;
+	  left: 6px;
+	  width: 6px;
+	  height: 6px;
+	  border-radius: 50%;
+	  background: white;
+  }

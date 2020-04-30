@@ -57,6 +57,7 @@
 				<div class="absoluteActionBarSommarioArchiviElement">Righe: <span id="rowsNumEditableTable"></span></div>
 				<button class="absoluteActionBarSommarioArchiviButton" onclick="scaricaExcel('containerSommarioArchivi')">Esporta <i style="margin-left:5px;color:green" class="far fa-file-excel"></i></button>
 				<button class="absoluteActionBarSommarioArchiviButton" onclick="resetFilters();getTable(selectetTable)">Ripristina <i style="margin-left:5px" class="fal fa-filter"></i></button>
+				<a class="absoluteActionBarSommarioArchiviButton" id="btnManualeScantonature" target="_blank" href="files/manuale_scantonature.pdf">Manuale scantonature <i style="margin-left:5px" class="fal fa-book"></i></a>
 			</div>
 			<div id="configurazionePunzoniControls" class="absoluteActionBarControls">
 				<div class="absoluteActionBarSommarioArchiviElement">
@@ -71,7 +72,7 @@
 		</div>
 		<div id="containerSommarioArchivi"></div>
 		<div id="footer">
-			<b>Oasis Group</b>  |  Via Favola 19 33070 San Giovanni PN  |  Tel. +39 0434654752
+			<b>Marine&nbspInteriors&nbspS.p.A.</b>&nbsp&nbsp|&nbsp&nbspVia&nbspSegaluzza&nbsp33170&nbspPordenone&nbsp&nbsp|&nbsp&nbspPhone:&nbsp(+39)&nbsp0434612811&nbsp|&nbspPowered&nbspby&nbsp<a target="_blank" href="http://www.servizioglobale.it">Servizio Globale S.R.L.</a>
 		</div>
 
 		<!--for dev only-->

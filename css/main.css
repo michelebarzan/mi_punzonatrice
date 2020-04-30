@@ -551,6 +551,7 @@ html
 	height:50px;
 	box-sizing: border-box;
 	padding:5px;
+	object-fit: scale-down;
 }
 .main-nav-bar-user-info-container
 {
@@ -904,6 +905,22 @@ html
 	font-size:14px;
 	color:#F9F9F9;
 	font-family: 'Montserrat', sans-serif;
+}
+#footer a:link
+{
+	color: #4C91CB;
+}
+#footer a:visited
+{
+	color: #4C91CB;
+}
+#footer a:hover
+{
+	color: #4C91CB;
+}
+#footer a:active
+{
+	color: #4C91CB;
 }
 #popup
 {

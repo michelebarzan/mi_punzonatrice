@@ -21,14 +21,14 @@
         {
             while($rowSviluppi=sqlsrv_fetch_array($rSviluppi))
             {
-                $datiSviluppo["CODSVI"]=utf8_encode($rowSviluppi['CODSVI']);
-                $datiSviluppo["LUNG"]=utf8_encode($rowSviluppi['LUNG']);
-                $datiSviluppo["SPESS"]=utf8_encode($rowSviluppi['SPESS']);
-                $datiSviluppo["HALT"]=utf8_encode($rowSviluppi['HALT']);
-                $datiSviluppo["FINITURA"]=utf8_encode($rowSviluppi['FINITURA']);
-                $datiSviluppo["FORI"]=utf8_encode($rowSviluppi['FORI']);
-                $datiSviluppo["RIGHE"]=utf8_encode($rowSviluppi['RIGHE']);
-                $datiSviluppo["TIPO"]=utf8_encode($rowSviluppi['TIPO']);
+                $datiSviluppo["CODSVI"]=$rowSviluppi['CODSVI'];
+                $datiSviluppo["LUNG"]=number_format($rowSviluppi['LUNG'],2,",",".");
+                $datiSviluppo["SPESS"]=number_format($rowSviluppi['SPESS'],2,",",".");
+                $datiSviluppo["HALT"]=number_format($rowSviluppi['HALT'],2,",",".");
+                $datiSviluppo["FINITURA"]=$rowSviluppi['FINITURA'];
+                $datiSviluppo["FORI"]=$rowSviluppi['FORI'];
+                $datiSviluppo["RIGHE"]=$rowSviluppi['RIGHE'];
+                $datiSviluppo["TIPO"]=$rowSviluppi['TIPO'];
 
                 echo json_encode($datiSviluppo);
             }

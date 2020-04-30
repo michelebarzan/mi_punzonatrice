@@ -3,7 +3,8 @@
 	<link href="https://fonts.googleapis.com/css?family=Nunito|Raleway" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css?family=Quicksand:300" rel="stylesheet">
 	<script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
-	<script src="https://kit.fontawesome.com/4462bc49a0.js"></script>
+	<!--<script src="https://kit.fontawesome.com/4462bc49a0.js" crossorigin="anonymous"></script>-->
+	<link href="css_libraries/fontawesome/css/all.css" rel="stylesheet">
 	<script src="js_libraries/canvasjs.min.js"></script>
 	<div id="header" class="header" >
 		<!--<input type="button" id="nascondi" value="" onclick="nascondi()" data-toggle='tooltip' title='Apri menu' />-->
@@ -132,7 +133,7 @@
 		{
 			echo "<div style='width:100%;height:200px;line-height:200px;text-align:center;font-weight:bold;color:red;font-family:".htmlspecialchars(json_encode('Montserrat')).",sans-serif'>Accesso alla pagina non consentito</div>";
 			echo '<div id="footer">
-					<b>Oasis Group</b>  |  Via Favola 19 33070 San Giovanni PN  |  Tel. +39 0434654752
+					<b>Marine&nbspInteriors&nbspS.p.A.</b>&nbsp&nbsp|&nbsp&nbspVia&nbspSegaluzza&nbsp33170&nbspPordenone&nbsp&nbsp|&nbsp&nbspPhone:&nbsp(+39)&nbsp0434612811&nbsp|&nbspPowered&nbspby&nbsp<a target="_blank" href="http://www.servizioglobale.it">Servizio Globale S.R.L.</a>
 				</div>';
 			echo '</body>';
 			echo '</html>';

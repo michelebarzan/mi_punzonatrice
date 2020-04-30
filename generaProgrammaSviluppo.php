@@ -196,39 +196,21 @@
     }
     //------------------------------------------------------------------------------------------
 
-    //GENERO LE LAVORAZIONI PER ANGOLO 0-180
-    /*$qScantonature1="SELECT * FROM scantonature WHERE configurazione_punzoni IN (SELECT DISTINCT id_configurazione_punzoni FROM configurazioni_punzoni WHERE configurazione=$configurazione) 
-                    AND tipo ='".$infoSviluppo['TIPO']."' AND lato='A0-180'";
-    $rScantonature1=sqlsrv_query($conn,$qScantonature1);
-    if($rScantonature1==FALSE)
-    {
-        die("queryerr");
-    }
-    else
-    {
-        $rows1 = sqlsrv_has_rows( $rScantonature1 );
-        if ($rows1 === true)
-        {
-            $qScantonature2="    SELECT        dbo.pannellil.ANG, dbo.pannellil.LUNG1, dbo.pannellil.LUNG2
-            FROM            dbo.dibpan INNER JOIN
-                             dbo.pannellil ON dbo.dibpan.CODPAN = dbo.pannellil.CODPAN INNER JOIN
-                             dbo.sviluppi ON dbo.dibpan.CODELE = dbo.sviluppi.CODSVI COLLATE Latin1_General_CI_AS
-            WHERE        (CONVERT(float, dbo.pannellil.ANG) > 0) AND (CONVERT(float, dbo.pannellil.ANG) < 180) AND (dbo.sviluppi.CODSVI = '$sviluppo')";
-            $rScantonature2=sqlsrv_query($conn,$qScantonature2);
-            if($rScantonature2==FALSE)
-            {
-                die("queryerr");
-            }
-            else
-            {
-                $rows2 = sqlsrv_has_rows( $rScantonature2 );
-                if ($rows2 === true)
-                {
+    //GENERO LE LAVORAZIONI PER ANGOLO A0-180
+    lavorazioneAngoloA0_180($arrayResponse,$conn,$infoSviluppo,$configurazione);
+    //------------------------------------------------------------------------------------------
 
-                }
-            }
-        }
-    }*/
+    //GENERO LE LAVORAZIONI PER ANGOLO A180-360
+    lavorazioneAngoloA180_360($arrayResponse,$conn,$infoSviluppo,$configurazione);
+    //------------------------------------------------------------------------------------------
+
+    //GENERO LE LAVORAZIONI PER ANGOLO B0-180
+    lavorazioneAngoloB0_180($arrayResponse,$conn,$infoSviluppo,$configurazione);
+    //------------------------------------------------------------------------------------------
+
+    //GENERO LE LAVORAZIONI PER ANGOLO B180-360
+    lavorazioneAngoloB180_360($arrayResponse,$conn,$infoSviluppo,$configurazione);
+    //------------------------------------------------------------------------------------------
 
     //SEPARO LE LAVORAZIONI IN BASE AI RIPOSIZIONAMENTI-----------------------------------------
     $listaLavorazioni=$arrayResponse["lavorazioni"];
@@ -351,6 +333,9 @@
     $rowOutputNC=":".substr($sviluppo, -4)."(".$sviluppo.")";
     array_push($outputNC,$rowOutputNC);
 
+    $rowOutputNC="(TIPO: ".$infoSviluppo['TIPO'].")";
+    array_push($outputNC,$rowOutputNC);
+
     $HALTNC=get_string_w_2_decimal($infoSviluppo['HALT']);
     $LUNGNC=get_string_w_2_decimal($infoSviluppo['LUNG']);
 
@@ -366,10 +351,14 @@
     $punzoniNC=[];
     foreach($listaLavorazioni as $lavorazione)
     {
-        $punzone=$lavorazione['punzone'];
+        $punzone["descrizione"]=$lavorazione["punzone"]["descrizione"];
+        $punzone["posizione"]=$lavorazione["punzone"]["posizione"];
+
         array_push($punzoniNC,$punzone);
     }
+
     $punzoniNC=array_object_unique($punzoniNC);
+
     foreach($punzoniNC as $punzone)
     {
         $rowOutputNC="(".$punzone['descrizione']." ".$punzone['posizione']." A0)";
@@ -478,7 +467,7 @@
     array_push($outputNC,$rowOutputNC);
 
     $arrayResponse["outputNC"]=$outputNC;
-    //------------------------------------------------------------------------------------------
+    
 
     $time_elapsed_secs = microtime(true) - $start;
     $arrayResponse["time_elapsed_secs"]=$time_elapsed_secs;
@@ -487,6 +476,623 @@
 
     createFile($configurazione,$sviluppo,$outputNC,$conn);
 
+    //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    function lavorazioneAngoloA180_360(&$arrayResponse,$conn,$infoSviluppo,$configurazione)
+    {
+        $qAngolo180_3601="SELECT dbo.scantonature.distanza_punta_triangolo,dbo.scantonature.id_scantonatura, dbo.scantonature.tipo, dbo.scantonature.lato, dbo.scantonature.configurazione_punzoni, dbo.scantonature.posx, dbo.scantonature.posy, dbo.scantonature.angolo, dbo.scantonature.interasse, 
+                    dbo.scantonature.ripetizioni, dbo.scantonature.rotazione, dbo.scantonature.lavorazioni, dbo.anagrafica_punzoni.id_punzone, dbo.anagrafica_punzoni.descrizione, dbo.anagrafica_punzoni.dx, dbo.anagrafica_punzoni.dy, 
+                    dbo.anagrafica_punzoni.forma, dbo.anagrafica_punzoni.angolo AS angoloPunzone, dbo.anagrafica_punzoni.ix, dbo.anagrafica_punzoni.iy, dbo.anagrafica_punzoni.codice, dbo.anagrafica_punzoni.nome,dbo.configurazioni_punzoni.posizione
+                    FROM dbo.scantonature INNER JOIN
+                    dbo.configurazioni_punzoni ON dbo.scantonature.configurazione_punzoni = dbo.configurazioni_punzoni.id_configurazione_punzoni INNER JOIN
+                    dbo.anagrafica_punzoni ON dbo.configurazioni_punzoni.punzone = dbo.anagrafica_punzoni.id_punzone
+                    WHERE (dbo.scantonature.configurazione_punzoni IN
+                    (SELECT DISTINCT id_configurazione_punzoni
+                        FROM dbo.configurazioni_punzoni AS configurazioni_punzoni_1
+                        WHERE (configurazione = $configurazione))) AND (dbo.scantonature.tipo = '".$infoSviluppo['TIPO']."') AND (dbo.scantonature.lato = 'A180-360') AND (dbo.scantonature.lavorazioni = 'true')";
+        $rAngolo180_3601=sqlsrv_query($conn,$qAngolo180_3601);
+        if($rAngolo180_3601==FALSE)
+        {
+            die("queryerr");
+        }
+        else
+        {
+            $rows1 = sqlsrv_has_rows( $rAngolo180_3601 );
+            if ($rows1 === true)
+            {
+                $lavorazioniA=[];
+                while($rowAngolo180_3601=sqlsrv_fetch_array($rAngolo180_3601))
+                {
+                    $lavorazioneA["tipoLavorazione"]="foro";
+                    $lavorazioneA["nomeLavorazione"]="piega_angolo_180_360";
+
+                    $lavorazioneA["id_scantonatura"]=$rowAngolo180_3601['id_scantonatura'];
+                    $lavorazioneA["tipo"]=$rowAngolo180_3601['tipo'];
+                    $lavorazioneA["lato"]=$rowAngolo180_3601['lato'];
+                    $lavorazioneA["POSX"]=$rowAngolo180_3601['posx'];
+                    $lavorazioneA["POSY"]=$rowAngolo180_3601['posy'];
+                    $lavorazioneA["orientamento"]=$rowAngolo180_3601['angolo'];
+                    $lavorazioneA["spostamento"]=$rowAngolo180_3601['interasse'];
+                    $lavorazioneA["ripetizioni"]=$rowAngolo180_3601['ripetizioni'];
+                    $lavorazioneA["rotazione"]=$rowAngolo180_3601['rotazione'];
+                    $lavorazioneA["distanza_punta_triangolo"]=$rowAngolo180_3601['distanza_punta_triangolo'];
+                    
+                    $punzoneCorrenteA["id_punzone"]=$rowAngolo180_3601['id_punzone'];
+                    $punzoneCorrenteA["nomePunzone"]=$rowAngolo180_3601['nome'];
+                    $punzoneCorrenteA["descrizione"]=$rowAngolo180_3601['descrizione'];
+                    $punzoneCorrenteA["dx"]=floatval($rowAngolo180_3601['dx']);
+                    $punzoneCorrenteA["dy"]=floatval($rowAngolo180_3601['dy']);
+                    $punzoneCorrenteA["forma"]=$rowAngolo180_3601['forma'];
+                    $punzoneCorrenteA["angolo"]=floatval($rowAngolo180_3601['angoloPunzone']);
+                    $punzoneCorrenteA["ix"]=floatval($rowAngolo180_3601['ix']);
+                    $punzoneCorrenteA["iy"]=floatval($rowAngolo180_3601['iy']);
+                    $punzoneCorrenteA["posizione"]=$rowAngolo180_3601['posizione'];
+
+                    $lavorazioneA["punzone"]=$punzoneCorrenteA;
+                    
+                    array_push($lavorazioniA,$lavorazioneA);
+                }
+                $qAngolo180_3602="SELECT dbo.pannellil.ANG, dbo.pannellil.LUNG1, dbo.pannellil.LUNG2
+                                FROM dbo.dibpan INNER JOIN dbo.pannellil ON dbo.dibpan.CODPAN = dbo.pannellil.CODPAN INNER JOIN dbo.sviluppi ON dbo.dibpan.CODELE = dbo.sviluppi.CODSVI COLLATE Latin1_General_CI_AS
+                                WHERE (CONVERT(float, dbo.pannellil.ANG) > 180) AND (CONVERT(float, dbo.pannellil.ANG) < 360) AND (dbo.sviluppi.CODSVI = '".$infoSviluppo['CODSVI']."')";
+                $rAngolo180_3602=sqlsrv_query($conn,$qAngolo180_3602);
+                if($rAngolo180_3602==FALSE)
+                {
+                    die("queryerr");
+                }
+                else
+                {
+                    $rows2 = sqlsrv_has_rows( $rAngolo180_3602 );
+                    if ($rows2 === true)
+                    {
+                        $arretramento_x_BPS=getParametro("arretramento_x_BPS",$conn);
+                        while($rowAngolo180_3602=sqlsrv_fetch_array($rAngolo180_3602))
+                        {
+                            foreach($lavorazioniA as $lavorazioneA)
+                            {
+                                $infoPannellil["ANG"]=floatval($rowAngolo180_3602['ANG']);
+                                $infoPannellil["LUNG1"]=floatval($rowAngolo180_3602['LUNG1']);
+                                $infoPannellil["LUNG2"]=floatval($rowAngolo180_3602['LUNG2']);
+                            }
+                        }
+                        $lavorazioni=[];
+                        foreach($lavorazioniA as $lavorazioneA)
+                        {
+
+                            $lavorazione=$lavorazioneA;
+                            $lavorazione["ANG"]=$infoPannellil['ANG'];
+                            $lavorazione["LUNG1"]=$infoPannellil['LUNG1'];
+                            $lavorazione["LUNG2"]=$infoPannellil['LUNG2'];
+
+                            $angolo_scantonatura=$lavorazione["ANG"]-180;
+
+                            if($angolo_scantonatura<=$lavorazione["orientamento"])
+                            {
+                                $istruzione["posizione"]=$lavorazione["punzone"]["posizione"];
+                                $istruzione["xPunzonata"]=$infoSviluppo["LUNG"]-$lavorazione["LUNG2"]-$arretramento_x_BPS+$lavorazione["POSX"];
+                                $istruzione["yPunzonata"]=$lavorazione["POSY"];
+                                $istruzione["orientamento"]=$lavorazione["orientamento"];
+                                $istruzione["rotazione"]=$lavorazione["rotazione"];
+                                $istruzione["nRipetizioni"]=$lavorazione["ripetizioni"];
+                                $istruzione["spostamento"]=$lavorazione["spostamento"];
+
+                                $lavorazione["output"]=[$istruzione];
+                            }
+                            else
+                            {
+                                $output=[];
+
+                                $n_punzonate=intval($angolo_scantonatura/$lavorazione["spostamento"])+1;
+
+                                $x_punta=$infoSviluppo["LUNG"]-$lavorazione["LUNG2"]-$arretramento_x_BPS+$lavorazione["POSX"];
+                                $y_punta=$lavorazione["POSY"]+$lavorazione["distanza_punta_triangolo"];
+
+                                $ang_p_1=((180-$angolo_scantonatura)/2)+$angolo_scantonatura-($lavorazioneA["punzone"]["angolo"]/2);
+
+                                $xp1=$x_punta-($lavorazione["distanza_punta_triangolo"]*cos(deg2rad($ang_p_1)));
+                                $yp1=$y_punta-($lavorazione["distanza_punta_triangolo"]*sin(deg2rad($ang_p_1)));
+
+                                $rotazionep1=($angolo_scantonatura/2)-($lavorazioneA["punzone"]["angolo"]/2);
+
+                                $istruzione["posizione"]=$lavorazione["punzone"]["posizione"];
+                                $istruzione["xPunzonata"]=$xp1;
+                                $istruzione["yPunzonata"]=$yp1;
+                                $istruzione["orientamento"]=$lavorazione["orientamento"];
+                                $istruzione["rotazione"]=$rotazionep1;
+                                $istruzione["nRipetizioni"]=$lavorazione["ripetizioni"];
+                                $istruzione["spostamento"]=$lavorazione["spostamento"];
+
+                                array_push($output,$istruzione);
+
+                                $ang_p_2=$ang_p_1-$angolo_scantonatura+$lavorazioneA["punzone"]["angolo"];
+
+                                $xp2=$xp1+(2*($x_punta-$xp1));
+                                $yp2=$yp1;
+
+                                $rotazionep2=$rotazionep1+360-($angolo_scantonatura-$lavorazioneA["punzone"]["angolo"]);
+
+                                $istruzione["posizione"]=$lavorazione["punzone"]["posizione"];
+                                $istruzione["xPunzonata"]=$xp2;
+                                $istruzione["yPunzonata"]=$yp2;
+                                $istruzione["orientamento"]=$lavorazione["orientamento"];
+                                $istruzione["rotazione"]=$rotazionep2;
+                                $istruzione["nRipetizioni"]=$lavorazione["ripetizioni"];
+                                $istruzione["spostamento"]=$lavorazione["spostamento"];
+
+                                array_push($output,$istruzione);
+
+                                $d_rotazione=($ang_p_2-$ang_p_1)/($n_punzonate-1);
+                                $n_punzonate_mancanti=$n_punzonate-2;
+                                $d_rotazione_base=$ang_p_1;
+
+                                for ($x = 0; $x < $n_punzonate_mancanti; $x++)
+                                {
+                                    $d_rotazione_base+=$d_rotazione;
+
+                                    $xpn=$x_punta-($lavorazione["distanza_punta_triangolo"]*cos(deg2rad($d_rotazione_base)));
+                                    $ypn=$y_punta-($lavorazione["distanza_punta_triangolo"]*sin(deg2rad($d_rotazione_base)));
+
+                                    $istruzione["posizione"]=$lavorazione["punzone"]["posizione"];
+                                    $istruzione["xPunzonata"]=$xpn;
+                                    $istruzione["yPunzonata"]=$ypn;
+                                    $istruzione["orientamento"]=$lavorazione["orientamento"];
+                                    $istruzione["rotazione"]=$d_rotazione_base-90;
+                                    $istruzione["nRipetizioni"]=$lavorazione["ripetizioni"];
+                                    $istruzione["spostamento"]=$lavorazione["spostamento"];
+
+                                    array_push($output,$istruzione);
+                                }
+
+                                $lavorazione["output"]=$output;
+                            }                            
+
+                            array_push($arrayResponse["lavorazioni"],$lavorazione);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    function lavorazioneAngoloA0_180(&$arrayResponse,$conn,$infoSviluppo,$configurazione)
+    {
+        $qAngolo0_1801="SELECT dbo.scantonature.id_scantonatura, dbo.scantonature.tipo, dbo.scantonature.lato, dbo.scantonature.configurazione_punzoni, dbo.scantonature.posx, dbo.scantonature.posy, dbo.scantonature.angolo, dbo.scantonature.interasse, 
+                    dbo.scantonature.ripetizioni, dbo.scantonature.rotazione, dbo.scantonature.lavorazioni, dbo.anagrafica_punzoni.id_punzone, dbo.anagrafica_punzoni.descrizione, dbo.anagrafica_punzoni.dx, dbo.anagrafica_punzoni.dy, 
+                    dbo.anagrafica_punzoni.forma, dbo.anagrafica_punzoni.angolo AS angoloPunzone, dbo.anagrafica_punzoni.ix, dbo.anagrafica_punzoni.iy, dbo.anagrafica_punzoni.codice, dbo.anagrafica_punzoni.nome,dbo.configurazioni_punzoni.posizione
+                    FROM dbo.scantonature INNER JOIN
+                    dbo.configurazioni_punzoni ON dbo.scantonature.configurazione_punzoni = dbo.configurazioni_punzoni.id_configurazione_punzoni INNER JOIN
+                    dbo.anagrafica_punzoni ON dbo.configurazioni_punzoni.punzone = dbo.anagrafica_punzoni.id_punzone
+                    WHERE (dbo.scantonature.configurazione_punzoni IN
+                    (SELECT DISTINCT id_configurazione_punzoni
+                        FROM dbo.configurazioni_punzoni AS configurazioni_punzoni_1
+                        WHERE (configurazione = $configurazione))) AND (dbo.scantonature.tipo = '".$infoSviluppo['TIPO']."') AND (dbo.scantonature.lato = 'A0-180') AND (dbo.scantonature.lavorazioni = 'true')";
+        $rAngolo0_1801=sqlsrv_query($conn,$qAngolo0_1801);
+        if($rAngolo0_1801==FALSE)
+        {
+            die("queryerr");
+        }
+        else
+        {
+            $rows1 = sqlsrv_has_rows( $rAngolo0_1801 );
+            if ($rows1 === true)
+            {
+                $lavorazioniA=[];
+                while($rowAngolo0_1801=sqlsrv_fetch_array($rAngolo0_1801))
+                {
+                    $lavorazioneA["tipoLavorazione"]="foro";
+                    $lavorazioneA["nomeLavorazione"]="piega_angolo_0_180";
+
+                    $lavorazioneA["id_scantonatura"]=$rowAngolo0_1801['id_scantonatura'];
+                    $lavorazioneA["tipo"]=$rowAngolo0_1801['tipo'];
+                    $lavorazioneA["lato"]=$rowAngolo0_1801['lato'];
+                    $lavorazioneA["POSX"]=$rowAngolo0_1801['posx'];
+                    $lavorazioneA["POSY"]=$rowAngolo0_1801['posy'];
+                    $lavorazioneA["orientamento"]=$rowAngolo0_1801['angolo'];
+                    $lavorazioneA["spostamento"]=$rowAngolo0_1801['interasse'];
+                    $lavorazioneA["ripetizioni"]=$rowAngolo0_1801['ripetizioni'];
+                    $lavorazioneA["rotazione"]=$rowAngolo0_1801['rotazione'];
+                    
+                    $punzoneCorrenteA["id_punzone"]=$rowAngolo0_1801['id_punzone'];
+                    $punzoneCorrenteA["nomePunzone"]=$rowAngolo0_1801['nome'];
+                    $punzoneCorrenteA["descrizione"]=$rowAngolo0_1801['descrizione'];
+                    $punzoneCorrenteA["dx"]=floatval($rowAngolo0_1801['dx']);
+                    $punzoneCorrenteA["dy"]=floatval($rowAngolo0_1801['dy']);
+                    $punzoneCorrenteA["forma"]=$rowAngolo0_1801['forma'];
+                    $punzoneCorrenteA["angolo"]=floatval($rowAngolo0_1801['angoloPunzone']);
+                    $punzoneCorrenteA["ix"]=floatval($rowAngolo0_1801['ix']);
+                    $punzoneCorrenteA["iy"]=floatval($rowAngolo0_1801['iy']);
+                    $punzoneCorrenteA["posizione"]=$rowAngolo0_1801['posizione'];
+
+                    $lavorazioneA["punzone"]=$punzoneCorrenteA;
+                    
+                    array_push($lavorazioniA,$lavorazioneA);
+                }
+                $qAngolo0_1802="SELECT dbo.pannellil.ANG, dbo.pannellil.LUNG1, dbo.pannellil.LUNG2
+                                FROM dbo.dibpan INNER JOIN dbo.pannellil ON dbo.dibpan.CODPAN = dbo.pannellil.CODPAN INNER JOIN dbo.sviluppi ON dbo.dibpan.CODELE = dbo.sviluppi.CODSVI COLLATE Latin1_General_CI_AS
+                                WHERE (CONVERT(float, dbo.pannellil.ANG) > 0) AND (CONVERT(float, dbo.pannellil.ANG) < 180) AND (dbo.sviluppi.CODSVI = '".$infoSviluppo['CODSVI']."')";
+                $rAngolo0_1802=sqlsrv_query($conn,$qAngolo0_1802);
+                if($rAngolo0_1802==FALSE)
+                {
+                    die("queryerr");
+                }
+                else
+                {
+                    $rows2 = sqlsrv_has_rows( $rAngolo0_1802 );
+                    if ($rows2 === true)
+                    {
+                        $arretramento_x_BPS=getParametro("arretramento_x_BPS",$conn);
+                        while($rowAngolo0_1802=sqlsrv_fetch_array($rAngolo0_1802))
+                        {
+                            foreach($lavorazioniA as $lavorazioneA)
+                            {
+                                $infoPannellil["ANG"]=floatval($rowAngolo0_1802['ANG']);
+                                $infoPannellil["LUNG1"]=floatval($rowAngolo0_1802['LUNG1']);
+                                $infoPannellil["LUNG2"]=floatval($rowAngolo0_1802['LUNG2']);
+                            }
+                        }
+                        $lavorazioni=[];
+                        foreach($lavorazioniA as $lavorazioneA)
+                        {
+                            $lavorazione=$lavorazioneA;
+                            $lavorazione["ANG"]=$infoPannellil['ANG'];
+                            $lavorazione["LUNG1"]=$infoPannellil['LUNG1'];
+                            $lavorazione["LUNG2"]=$infoPannellil['LUNG2'];
+
+                            $istruzione["posizione"]=$lavorazione["punzone"]["posizione"];
+                            $istruzione["xPunzonata"]=$infoSviluppo["LUNG"]-$lavorazione["LUNG2"]-$arretramento_x_BPS+$lavorazione["POSX"];
+                            $istruzione["yPunzonata"]=0+$lavorazione["POSY"];
+                            $istruzione["orientamento"]=$lavorazione["orientamento"];
+                            $istruzione["rotazione"]=$lavorazione["rotazione"];
+                            $istruzione["nRipetizioni"]=$lavorazione["ripetizioni"];
+                            $istruzione["spostamento"]=$lavorazione["spostamento"];
+
+                            $lavorazione["output"]=[$istruzione];
+                         
+                            array_push($arrayResponse["lavorazioni"],$lavorazione);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    function lavorazioneAngoloB180_360(&$arrayResponse,$conn,$infoSviluppo,$configurazione)
+    {
+        $qAngolo180_3601="SELECT dbo.scantonature.distanza_punta_triangolo,dbo.scantonature.id_scantonatura, dbo.scantonature.tipo, dbo.scantonature.lato, dbo.scantonature.configurazione_punzoni, dbo.scantonature.posx, dbo.scantonature.posy, dbo.scantonature.angolo, dbo.scantonature.interasse, 
+                    dbo.scantonature.ripetizioni, dbo.scantonature.rotazione, dbo.scantonature.lavorazioni, dbo.anagrafica_punzoni.id_punzone, dbo.anagrafica_punzoni.descrizione, dbo.anagrafica_punzoni.dx, dbo.anagrafica_punzoni.dy, 
+                    dbo.anagrafica_punzoni.forma, dbo.anagrafica_punzoni.angolo AS angoloPunzone, dbo.anagrafica_punzoni.ix, dbo.anagrafica_punzoni.iy, dbo.anagrafica_punzoni.codice, dbo.anagrafica_punzoni.nome,dbo.configurazioni_punzoni.posizione
+                    FROM dbo.scantonature INNER JOIN
+                    dbo.configurazioni_punzoni ON dbo.scantonature.configurazione_punzoni = dbo.configurazioni_punzoni.id_configurazione_punzoni INNER JOIN
+                    dbo.anagrafica_punzoni ON dbo.configurazioni_punzoni.punzone = dbo.anagrafica_punzoni.id_punzone
+                    WHERE (dbo.scantonature.configurazione_punzoni IN
+                    (SELECT DISTINCT id_configurazione_punzoni
+                        FROM dbo.configurazioni_punzoni AS configurazioni_punzoni_1
+                        WHERE (configurazione = $configurazione))) AND (dbo.scantonature.tipo = '".$infoSviluppo['TIPO']."') AND (dbo.scantonature.lato = 'B180-360') AND (dbo.scantonature.lavorazioni = 'true')";
+        $rAngolo180_3601=sqlsrv_query($conn,$qAngolo180_3601);
+        if($rAngolo180_3601==FALSE)
+        {
+            die("queryerr");
+        }
+        else
+        {
+            $rows1 = sqlsrv_has_rows( $rAngolo180_3601 );
+            if ($rows1 === true)
+            {
+                $lavorazioniA=[];
+                while($rowAngolo180_3601=sqlsrv_fetch_array($rAngolo180_3601))
+                {
+                    $lavorazioneA["tipoLavorazione"]="foro";
+                    $lavorazioneA["nomeLavorazione"]="piega_angolo_180_360";
+
+                    $lavorazioneA["id_scantonatura"]=$rowAngolo180_3601['id_scantonatura'];
+                    $lavorazioneA["tipo"]=$rowAngolo180_3601['tipo'];
+                    $lavorazioneA["lato"]=$rowAngolo180_3601['lato'];
+                    $lavorazioneA["POSX"]=$rowAngolo180_3601['posx'];
+                    $lavorazioneA["POSY"]=$rowAngolo180_3601['posy'];
+                    $lavorazioneA["orientamento"]=$rowAngolo180_3601['angolo'];
+                    $lavorazioneA["spostamento"]=$rowAngolo180_3601['interasse'];
+                    $lavorazioneA["ripetizioni"]=$rowAngolo180_3601['ripetizioni'];
+                    $lavorazioneA["rotazione"]=$rowAngolo180_3601['rotazione'];
+                    $lavorazioneA["distanza_punta_triangolo"]=$rowAngolo180_3601['distanza_punta_triangolo'];
+                    
+                    $punzoneCorrenteA["id_punzone"]=$rowAngolo180_3601['id_punzone'];
+                    $punzoneCorrenteA["nomePunzone"]=$rowAngolo180_3601['nome'];
+                    $punzoneCorrenteA["descrizione"]=$rowAngolo180_3601['descrizione'];
+                    $punzoneCorrenteA["dx"]=floatval($rowAngolo180_3601['dx']);
+                    $punzoneCorrenteA["dy"]=floatval($rowAngolo180_3601['dy']);
+                    $punzoneCorrenteA["forma"]=$rowAngolo180_3601['forma'];
+                    $punzoneCorrenteA["angolo"]=floatval($rowAngolo180_3601['angoloPunzone']);
+                    $punzoneCorrenteA["ix"]=floatval($rowAngolo180_3601['ix']);
+                    $punzoneCorrenteA["iy"]=floatval($rowAngolo180_3601['iy']);
+                    $punzoneCorrenteA["posizione"]=$rowAngolo180_3601['posizione'];
+
+                    $lavorazioneA["punzone"]=$punzoneCorrenteA;
+                    
+                    array_push($lavorazioniA,$lavorazioneA);
+                }
+                $qAngolo180_3602="SELECT dbo.pannellil.ANG, dbo.pannellil.LUNG1, dbo.pannellil.LUNG2
+                                FROM dbo.dibpan INNER JOIN dbo.pannellil ON dbo.dibpan.CODPAN = dbo.pannellil.CODPAN INNER JOIN dbo.sviluppi ON dbo.dibpan.CODELE = dbo.sviluppi.CODSVI COLLATE Latin1_General_CI_AS
+                                WHERE (CONVERT(float, dbo.pannellil.ANG) > 180) AND (CONVERT(float, dbo.pannellil.ANG) < 360) AND (dbo.sviluppi.CODSVI = '".$infoSviluppo['CODSVI']."')";
+                $rAngolo180_3602=sqlsrv_query($conn,$qAngolo180_3602);
+                if($rAngolo180_3602==FALSE)
+                {
+                    die("queryerr");
+                }
+                else
+                {
+                    $rows2 = sqlsrv_has_rows( $rAngolo180_3602 );
+                    if ($rows2 === true)
+                    {
+                        $arretramento_x_BPS=getParametro("arretramento_x_BPS",$conn);
+                        while($rowAngolo180_3602=sqlsrv_fetch_array($rAngolo180_3602))
+                        {
+                            foreach($lavorazioniA as $lavorazioneA)
+                            {
+                                $infoPannellil["ANG"]=floatval($rowAngolo180_3602['ANG']);
+                                $infoPannellil["LUNG1"]=floatval($rowAngolo180_3602['LUNG1']);
+                                $infoPannellil["LUNG2"]=floatval($rowAngolo180_3602['LUNG2']);
+                            }
+                        }
+                        $lavorazioni=[];
+                        foreach($lavorazioniA as $lavorazioneA)
+                        {
+
+                            $lavorazione=$lavorazioneA;
+                            $lavorazione["ANG"]=$infoPannellil['ANG'];
+                            $lavorazione["LUNG1"]=$infoPannellil['LUNG1'];
+                            $lavorazione["LUNG2"]=$infoPannellil['LUNG2'];
+
+                            $angolo_scantonatura=$lavorazione["ANG"]-180;
+
+                            if($angolo_scantonatura<=$lavorazione["orientamento"])
+                            {
+                                $istruzione["posizione"]=$lavorazione["punzone"]["posizione"];
+                                $istruzione["xPunzonata"]=$infoSviluppo["LUNG"]-$lavorazione["LUNG2"]-$arretramento_x_BPS+$lavorazione["POSX"];
+                                $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$lavorazione["POSY"];
+                                $istruzione["orientamento"]=$lavorazione["orientamento"];
+                                $istruzione["rotazione"]=$lavorazione["rotazione"];
+                                $istruzione["nRipetizioni"]=$lavorazione["ripetizioni"];
+                                $istruzione["spostamento"]=$lavorazione["spostamento"];
+
+                                $lavorazione["output"]=[$istruzione];
+                            }
+                            else
+                            {
+                                $output=[];
+
+                                /*$n_punzonate=intval($angolo_scantonatura/$lavorazione["spostamento"])+1;
+
+                                $x_punta=$infoSviluppo["LUNG"]-$lavorazione["LUNG2"]-$arretramento_x_BPS+$lavorazione["POSX"];
+                                $y_punta=$infoSviluppo["HALT"]-$lavorazione["POSY"]+$lavorazione["distanza_punta_triangolo"];
+
+                                $ang_p_1=((180-$angolo_scantonatura)/2)+$angolo_scantonatura-($lavorazioneA["punzone"]["angolo"]/2);
+
+                                $xp1=$x_punta-($lavorazione["distanza_punta_triangolo"]*cos(deg2rad($ang_p_1)));
+                                $yp1=$y_punta-($lavorazione["distanza_punta_triangolo"]*sin(deg2rad($ang_p_1)));
+
+                                $rotazionep1=($angolo_scantonatura/2)-($lavorazioneA["punzone"]["angolo"])-180;
+
+                                $istruzione["posizione"]=$lavorazione["punzone"]["posizione"];
+                                $istruzione["xPunzonata"]=$xp1;
+                                $istruzione["yPunzonata"]=$yp1;
+                                $istruzione["orientamento"]=$lavorazione["orientamento"];
+                                $istruzione["rotazione"]=$rotazionep1;
+                                $istruzione["nRipetizioni"]=$lavorazione["ripetizioni"];
+                                $istruzione["spostamento"]=$lavorazione["spostamento"];
+
+                                array_push($output,$istruzione);
+
+                                $ang_p_2=$ang_p_1-$angolo_scantonatura+$lavorazioneA["punzone"]["angolo"];
+
+                                $xp2=$xp1+(2*($x_punta-$xp1));
+                                $yp2=$yp1;
+
+                                $rotazionep2=$rotazionep1+360+($angolo_scantonatura-$lavorazioneA["punzone"]["angolo"]);
+
+                                $istruzione["posizione"]=$lavorazione["punzone"]["posizione"];
+                                $istruzione["xPunzonata"]=$xp2;
+                                $istruzione["yPunzonata"]=$yp2;
+                                $istruzione["orientamento"]=$lavorazione["orientamento"];
+                                $istruzione["rotazione"]=$rotazionep2;
+                                $istruzione["nRipetizioni"]=$lavorazione["ripetizioni"];
+                                $istruzione["spostamento"]=$lavorazione["spostamento"];
+
+                                array_push($output,$istruzione);
+
+                                $d_rotazione=($ang_p_2-$ang_p_1)/($n_punzonate-1);
+                                $n_punzonate_mancanti=$n_punzonate-2;
+                                $d_rotazione_base=$ang_p_1;
+
+                                for ($x = 0; $x < $n_punzonate_mancanti; $x++)
+                                {
+                                    $d_rotazione_base+=$d_rotazione;
+
+                                    $xpn=$x_punta-($lavorazione["distanza_punta_triangolo"]*cos(deg2rad($d_rotazione_base)));
+                                    $ypn=$y_punta-($lavorazione["distanza_punta_triangolo"]*sin(deg2rad($d_rotazione_base)));
+
+                                    $istruzione["posizione"]=$lavorazione["punzone"]["posizione"];
+                                    $istruzione["xPunzonata"]=$xpn;
+                                    $istruzione["yPunzonata"]=$ypn;
+                                    $istruzione["orientamento"]=$lavorazione["orientamento"];
+                                    $istruzione["rotazione"]=$d_rotazione_base-90;
+                                    $istruzione["nRipetizioni"]=$lavorazione["ripetizioni"];
+                                    $istruzione["spostamento"]=$lavorazione["spostamento"];
+
+                                    array_push($output,$istruzione);
+                                }
+
+                                $lavorazione["output"]=$output;
+                            }*/
+                                $n_punzonate=intval($angolo_scantonatura/$lavorazione["spostamento"])+1;
+
+                                $x_punta=$infoSviluppo["LUNG"]-$lavorazione["LUNG2"]-$arretramento_x_BPS+$lavorazione["POSX"];
+                                $y_punta=$infoSviluppo["HALT"]-$lavorazione["POSY"]+$lavorazione["distanza_punta_triangolo"];
+
+                                $ang_p_1=((180-$angolo_scantonatura)/2)+$angolo_scantonatura-($lavorazioneA["punzone"]["angolo"]/2);
+
+                                $xp1=$x_punta-($lavorazione["distanza_punta_triangolo"]*cos(deg2rad($ang_p_1)));
+                                $yp1=$y_punta-($lavorazione["distanza_punta_triangolo"]*sin(deg2rad($ang_p_1)));
+
+                                $rotazionep1=($angolo_scantonatura/2)-($lavorazioneA["punzone"]["angolo"]/2);
+
+                                $istruzione["posizione"]=$lavorazione["punzone"]["posizione"];
+                                $istruzione["xPunzonata"]=$xp1;
+                                $istruzione["yPunzonata"]=$yp1;
+                                $istruzione["orientamento"]=$lavorazione["orientamento"];
+                                $istruzione["rotazione"]=$rotazionep1;
+                                $istruzione["nRipetizioni"]=$lavorazione["ripetizioni"];
+                                $istruzione["spostamento"]=$lavorazione["spostamento"];
+
+                                array_push($output,$istruzione);
+
+                                $ang_p_2=$ang_p_1-$angolo_scantonatura+$lavorazioneA["punzone"]["angolo"];
+
+                                $xp2=$xp1+(2*($x_punta-$xp1));
+                                $yp2=$yp1;
+
+                                $rotazionep2=$rotazionep1+360-($angolo_scantonatura-$lavorazioneA["punzone"]["angolo"]);
+
+                                $istruzione["posizione"]=$lavorazione["punzone"]["posizione"];
+                                $istruzione["xPunzonata"]=$xp2;
+                                $istruzione["yPunzonata"]=$yp2;
+                                $istruzione["orientamento"]=$lavorazione["orientamento"];
+                                $istruzione["rotazione"]=$rotazionep2;
+                                $istruzione["nRipetizioni"]=$lavorazione["ripetizioni"];
+                                $istruzione["spostamento"]=$lavorazione["spostamento"];
+
+                                array_push($output,$istruzione);
+
+                                $d_rotazione=($ang_p_2-$ang_p_1)/($n_punzonate-1);
+                                $n_punzonate_mancanti=$n_punzonate-2;
+                                $d_rotazione_base=$ang_p_1;
+
+                                for ($x = 0; $x < $n_punzonate_mancanti; $x++)
+                                {
+                                    $d_rotazione_base+=$d_rotazione;
+
+                                    $xpn=$x_punta-($lavorazione["distanza_punta_triangolo"]*cos(deg2rad($d_rotazione_base)));
+                                    $ypn=$y_punta-($lavorazione["distanza_punta_triangolo"]*sin(deg2rad($d_rotazione_base)));
+
+                                    $istruzione["posizione"]=$lavorazione["punzone"]["posizione"];
+                                    $istruzione["xPunzonata"]=$xpn;
+                                    $istruzione["yPunzonata"]=$ypn;
+                                    $istruzione["orientamento"]=$lavorazione["orientamento"];
+                                    $istruzione["rotazione"]=$d_rotazione_base-90;
+                                    $istruzione["nRipetizioni"]=$lavorazione["ripetizioni"];
+                                    $istruzione["spostamento"]=$lavorazione["spostamento"];
+
+                                    array_push($output,$istruzione);
+                                }
+
+                                $lavorazione["output"]=$output;
+                            }  
+
+                            array_push($arrayResponse["lavorazioni"],$lavorazione);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    function lavorazioneAngoloB0_180(&$arrayResponse,$conn,$infoSviluppo,$configurazione)
+    {
+        $qAngolo0_1801="SELECT dbo.scantonature.id_scantonatura, dbo.scantonature.tipo, dbo.scantonature.lato, dbo.scantonature.configurazione_punzoni, dbo.scantonature.posx, dbo.scantonature.posy, dbo.scantonature.angolo, dbo.scantonature.interasse, 
+                    dbo.scantonature.ripetizioni, dbo.scantonature.rotazione, dbo.scantonature.lavorazioni, dbo.anagrafica_punzoni.id_punzone, dbo.anagrafica_punzoni.descrizione, dbo.anagrafica_punzoni.dx, dbo.anagrafica_punzoni.dy, 
+                    dbo.anagrafica_punzoni.forma, dbo.anagrafica_punzoni.angolo AS angoloPunzone, dbo.anagrafica_punzoni.ix, dbo.anagrafica_punzoni.iy, dbo.anagrafica_punzoni.codice, dbo.anagrafica_punzoni.nome,dbo.configurazioni_punzoni.posizione
+                    FROM dbo.scantonature INNER JOIN
+                    dbo.configurazioni_punzoni ON dbo.scantonature.configurazione_punzoni = dbo.configurazioni_punzoni.id_configurazione_punzoni INNER JOIN
+                    dbo.anagrafica_punzoni ON dbo.configurazioni_punzoni.punzone = dbo.anagrafica_punzoni.id_punzone
+                    WHERE (dbo.scantonature.configurazione_punzoni IN
+                    (SELECT DISTINCT id_configurazione_punzoni
+                        FROM dbo.configurazioni_punzoni AS configurazioni_punzoni_1
+                        WHERE (configurazione = $configurazione))) AND (dbo.scantonature.tipo = '".$infoSviluppo['TIPO']."') AND (dbo.scantonature.lato = 'B0-180') AND (dbo.scantonature.lavorazioni = 'true')";
+        $rAngolo0_1801=sqlsrv_query($conn,$qAngolo0_1801);
+        if($rAngolo0_1801==FALSE)
+        {
+            die("queryerr");
+        }
+        else
+        {
+            $rows1 = sqlsrv_has_rows( $rAngolo0_1801 );
+            if ($rows1 === true)
+            {
+                $lavorazioniA=[];
+                while($rowAngolo0_1801=sqlsrv_fetch_array($rAngolo0_1801))
+                {
+                    $lavorazioneA["tipoLavorazione"]="foro";
+                    $lavorazioneA["nomeLavorazione"]="piega_angolo_0_180";
+
+                    $lavorazioneA["id_scantonatura"]=$rowAngolo0_1801['id_scantonatura'];
+                    $lavorazioneA["tipo"]=$rowAngolo0_1801['tipo'];
+                    $lavorazioneA["lato"]=$rowAngolo0_1801['lato'];
+                    $lavorazioneA["POSX"]=$rowAngolo0_1801['posx'];
+                    $lavorazioneA["POSY"]=$rowAngolo0_1801['posy'];
+                    $lavorazioneA["orientamento"]=$rowAngolo0_1801['angolo'];
+                    $lavorazioneA["spostamento"]=$rowAngolo0_1801['interasse'];
+                    $lavorazioneA["ripetizioni"]=$rowAngolo0_1801['ripetizioni'];
+                    $lavorazioneA["rotazione"]=$rowAngolo0_1801['rotazione'];
+                    
+                    $punzoneCorrenteA["id_punzone"]=$rowAngolo0_1801['id_punzone'];
+                    $punzoneCorrenteA["nomePunzone"]=$rowAngolo0_1801['nome'];
+                    $punzoneCorrenteA["descrizione"]=$rowAngolo0_1801['descrizione'];
+                    $punzoneCorrenteA["dx"]=floatval($rowAngolo0_1801['dx']);
+                    $punzoneCorrenteA["dy"]=floatval($rowAngolo0_1801['dy']);
+                    $punzoneCorrenteA["forma"]=$rowAngolo0_1801['forma'];
+                    $punzoneCorrenteA["angolo"]=floatval($rowAngolo0_1801['angoloPunzone']);
+                    $punzoneCorrenteA["ix"]=floatval($rowAngolo0_1801['ix']);
+                    $punzoneCorrenteA["iy"]=floatval($rowAngolo0_1801['iy']);
+                    $punzoneCorrenteA["posizione"]=$rowAngolo0_1801['posizione'];
+
+                    $lavorazioneA["punzone"]=$punzoneCorrenteA;
+                    
+                    array_push($lavorazioniA,$lavorazioneA);
+                }
+                $qAngolo0_1802="SELECT dbo.pannellil.ANG, dbo.pannellil.LUNG1, dbo.pannellil.LUNG2
+                                FROM dbo.dibpan INNER JOIN dbo.pannellil ON dbo.dibpan.CODPAN = dbo.pannellil.CODPAN INNER JOIN dbo.sviluppi ON dbo.dibpan.CODELE = dbo.sviluppi.CODSVI COLLATE Latin1_General_CI_AS
+                                WHERE (CONVERT(float, dbo.pannellil.ANG) > 0) AND (CONVERT(float, dbo.pannellil.ANG) < 180) AND (dbo.sviluppi.CODSVI = '".$infoSviluppo['CODSVI']."')";
+                $rAngolo0_1802=sqlsrv_query($conn,$qAngolo0_1802);
+                if($rAngolo0_1802==FALSE)
+                {
+                    die("queryerr");
+                }
+                else
+                {
+                    $rows2 = sqlsrv_has_rows( $rAngolo0_1802 );
+                    if ($rows2 === true)
+                    {
+                        $arretramento_x_BPS=getParametro("arretramento_x_BPS",$conn);
+                        while($rowAngolo0_1802=sqlsrv_fetch_array($rAngolo0_1802))
+                        {
+                            foreach($lavorazioniA as $lavorazioneA)
+                            {
+                                $infoPannellil["ANG"]=floatval($rowAngolo0_1802['ANG']);
+                                $infoPannellil["LUNG1"]=floatval($rowAngolo0_1802['LUNG1']);
+                                $infoPannellil["LUNG2"]=floatval($rowAngolo0_1802['LUNG2']);
+                            }
+                        }
+                        $lavorazioni=[];
+                        foreach($lavorazioniA as $lavorazioneA)
+                        {
+                            $lavorazione=$lavorazioneA;
+                            $lavorazione["ANG"]=$infoPannellil['ANG'];
+                            $lavorazione["LUNG1"]=$infoPannellil['LUNG1'];
+                            $lavorazione["LUNG2"]=$infoPannellil['LUNG2'];
+
+                            $istruzione["posizione"]=$lavorazione["punzone"]["posizione"];
+                            $istruzione["xPunzonata"]=$infoSviluppo["LUNG"]-$lavorazione["LUNG2"]-$arretramento_x_BPS+$lavorazione["POSX"];
+                            $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$lavorazione["POSY"];
+                            $istruzione["orientamento"]=$lavorazione["orientamento"];
+                            $istruzione["rotazione"]=$lavorazione["rotazione"];
+                            $istruzione["nRipetizioni"]=$lavorazione["ripetizioni"];
+                            $istruzione["spostamento"]=$lavorazione["spostamento"];
+
+                            $lavorazione["output"]=[$istruzione];
+                       
+                            array_push($arrayResponse["lavorazioni"],$lavorazione);
+                        }
+                    }
+                }
+            }
+        }
+    }
     function getCoordinateM03($infoSviluppo,&$arrayResponse,$conn)
     {
         $esclusioniPressini=[];
@@ -682,7 +1288,7 @@
             if(sizeof($numberStringArray)>1 && strlen ($numberStringArray[1])==2)
                 $numberNC=$numberString;
             if(sizeof($numberStringArray)>1 && strlen ($numberStringArray[1])>2)
-                $numberNC=$numberStringArray[0].".".substr($numberStringArray[1],2);
+                $numberNC=$numberStringArray[0].".".substr($numberStringArray[1],0,2);
         }
         return $numberNC;
     }
@@ -692,12 +1298,13 @@
     function getRiposizionamenti($infoSviluppo,$listaLavorazioni,&$arrayResponse,$conn)
     {
         $x_fine_ciclo=floatval(getParametro("x_fine_ciclo",$conn));
+        $tolleranza_x_fine_ciclo=floatval(getParametro("tolleranza_x_fine_ciclo",$conn));
 
         $riposizionamentiArray=[];
 
         if($infoSviluppo["HALT"]>$x_fine_ciclo)
         {
-            $riposizionamento["valore"]=$infoSviluppo["HALT"]-$x_fine_ciclo;
+            $riposizionamento["valore"]=$infoSviluppo["HALT"]-$x_fine_ciclo+$tolleranza_x_fine_ciclo;
             $riposizionamento["verso"]="X";
 
             array_push($riposizionamentiArray,$riposizionamento);

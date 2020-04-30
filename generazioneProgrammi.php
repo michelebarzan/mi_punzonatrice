@@ -37,12 +37,12 @@
 			}
 		</style>
 	</head>
-	<body onload="addOptionsConfigurazioni();addOptionsGruppiSviluppi();/*addOptionsListaSviluppi()*/">
+	<body onload="checkCookieSettings();addOptionsConfigurazioni();addOptionsGruppiSviluppi();/*addOptionsListaSviluppi()*/">
 		<?php include('struttura.php'); ?>
         <div class="absoluteActionBar" style="top:100">
             <div class="absoluteActionBarSelectContainer">
                 Configurazione: 
-                <select id="selectConfigurazionePunzoni" style="width:70px" class="absoluteActionBarTransparentSelect" onchange="cleanContainerSviluppi()"></select>
+                <select id="selectConfigurazionePunzoni" style="max-width:150px" class="absoluteActionBarTransparentSelect" onchange="cleanContainerSviluppi()"></select>
             </div>
             <div class="absoluteActionBarSelectContainer">
                 <!--Gruppo sviluppi: 
@@ -62,20 +62,22 @@
 				<div class="absoluteActionBarElement" style="height:28px;line-height:28px;background-color:#4C91CB;box-sizing:border-box;padding-left:10px;padding-right:10px;margin-left:-5px;color:white">
 					Elenco sviluppi 
 				</div>
-				<button class="absoluteActionBarButton" style="width:100px;margin-top:4px" id="buttonGeneraTuttiSviluppi" onclick="generaTuttiProgrammiSviluppo()" style="margin-top:4px">Genera tutti</button>
-				<button class="absoluteActionBarButton" style="width:100px;margin-top:4px" onclick="scaricaTuttiProgrammiSviluppo(this,this.parentElement)" style="margin-top:4px">Scarica tutti</button>
-				<button class="absoluteActionBarButton" style="width:170px;margin-top:4px">
+				<button class="absoluteActionBarButton" style="margin-top:4px;width:120px" id="buttonGeneraTuttiSviluppi" onclick="generaTuttiProgrammiSviluppo()" >Genera tutti <i class="fad fa-layer-plus" style="margin-left:5px"></i></button>
+				<button class="absoluteActionBarButton" style="margin-top:4px;width:120px" onclick="scaricaTuttiProgrammiSviluppo(this,this.parentElement)" >Scarica tutti <i class="far fa-download" style="margin-left:5px"></i></button>
+				<button class="absoluteActionBarButton" style="margin-top:4px;width:120px" onclick="rimuoviTuttiProgrammiSviluppo()" >Rimovi tutti <i class="far fa-times" style="color:gray;margin-left:5px"></i></button>
+				<button class="absoluteActionBarButton" style="margin-top:4px;width:120px" onclick="getPopupImpostazioni()" >Impostazioni <i class="fad fa-sliders-v" style="margin-left:5px"></i></button>
+				<!--<button class="absoluteActionBarButton" style="margin-top:4px;">
 					<label class="pure-material-checkbox">
 						<input type="checkbox" checked id="checkboxControlloConflitti">
 						<span>Controllo conflitti</span>
 					</label>
-				</button>
+				</button>-->
 				<button class="absoluteActionBarButton" style="width:180px;margin-top:4px;display:none" id="buttonTabellaSoluzioniConflittiNomiBreviSviluppi" onclick="getTableConflittiSviluppi()" style="margin-top:4px">Tabella soluzioni conflitti</button>
 			</div>
 			<div id="containerGenerazioneProgrammiContainerSviluppi"></div>
 		</div>
 		<div id="footer">
-			<b>Oasis Group</b>  |  Via Favola 19 33070 San Giovanni PN  |  Tel. +39 0434654752
+		<b>Marine&nbspInteriors&nbspS.p.A.</b>&nbsp&nbsp|&nbsp&nbspVia&nbspSegaluzza&nbsp33170&nbspPordenone&nbsp&nbsp|&nbsp&nbspPhone:&nbsp(+39)&nbsp0434612811&nbsp|&nbspPowered&nbspby&nbsp<a target="_blank" href="http://www.servizioglobale.it">Servizio Globale S.R.L.</a>
 		</div>
 		<script src="js_libraries/jquery/jquery-3.4.1.min.js"></script>
 		<script src="js_libraries/jquery/jquery-ui.js"></script>

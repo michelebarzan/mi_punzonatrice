@@ -7,6 +7,7 @@
     }
     function resetStyle(button)
     {
+        
         var all = document.getElementsByClassName("functionListButton");
         for (var i = 0; i < all.length; i++) 
         {
@@ -116,6 +117,7 @@
     }
     function getTable(table,orderBy,orderType)
     {
+        $("#btnManualeScantonature").hide("fast","swing");
         $(".absoluteActionBarControls").hide("fast","swing");
         $("#editableTableControls").show("fast","swing");
         if(table=="anagrafica_punzoni")
@@ -133,6 +135,7 @@
         }
         if(table=="scantonature")
         {
+            $("#btnManualeScantonature").show("fast","swing");
             getEditableTable
             ({
                 table:'scantonature',
@@ -486,8 +489,13 @@
                         }
                         if(punzone.forma=="triangolo")
                         {
-                            liAltriPunzoni.setAttribute("style","background-color:transparent;border-bottom: solid 20px white;border-left: solid 20px transparent;border-right: solid 20px transparent;");
+                            liAltriPunzoni.setAttribute('style','background-color:transparent;box-shadow:none;background-size:33px 38px;background-image: url("../images/triangle.png");background-position: center center;background-repeat: no-repeat;');
                             liAltriPunzoni.innerHTML=punzone.angolo;
+                        }
+                        if(punzone.forma=="asola")
+                        {
+                            liAltriPunzoni.setAttribute("style","line-height:25px;margin-top:5px;margin-bottom:5px;width:35px;height:25px;border-radius:17.7px/12.5px");
+                            liAltriPunzoni.innerHTML=punzone.dx+"X"+punzone.dy;
                         }
 
                         ulAltriPunzoni.appendChild(liAltriPunzoni);
@@ -652,7 +660,7 @@
                         }
                         if(punzone.forma=="triangolo")
                         {
-                            liPunzoniConfigurazione.setAttribute("style","border-radius:43px;");
+                            liPunzoniConfigurazione.setAttribute('style','background-color:transparent;background-size:33px 38px;box-shadow:none;background-image: url("../images/triangle.png");background-position: center center;background-repeat: no-repeat;');
                             liPunzoniConfigurazione.innerHTML=punzone.angolo;
                         }
                         document.getElementById("posizioniPunzoniTorretta"+punzone.posizione).appendChild(liPunzoniConfigurazione);
@@ -856,7 +864,7 @@
             configurazione,
             posizione
         },
-        function(response, status)
+        async function(response, status)
         {
             if(status=="success")
             {
@@ -879,11 +887,31 @@
                     else
                         punzoneElement.attr("id_configurazione_punzoni",id_configurazioni[0]);
                     punzoneElement.attr("tipo","punzoneConfigurazione");
+                    
                     console.log("punzone aggiunto");
                 }
             }
             else
                 console.log(status);
+        });
+    }
+    function getFormaPunzone(id_punzone)
+    {
+        return new Promise(function (resolve, reject) 
+        {
+            $.get("getFormaPunzone.php",
+            {
+                id_punzone
+            },
+            function(response, status)
+            {
+                if(status=="success")
+                {
+                   resolve(response);
+                }
+                else
+                    reject({status});
+            });
         });
     }
     function updatePosizionePunzoneConfigurazione(id_configurazioni_punzoni,posizioneNew)
