@@ -12,6 +12,8 @@
 		<script src="editableTable/editableTable.js"></script>
 		<link rel="stylesheet" href="editableTable/editableTable.css" />
 		<script src="https://cdn.jsdelivr.net/npm/sweetalert2@8"></script>
+		<script src="js_libraries/spinnersV2/spinners.js"></script>
+		<link rel="stylesheet" href="js_libraries/spinnersV2/spinners.css" />
 		<title><?php echo $pageName; ?></title>
 		<link rel="stylesheet" href="css/main.css" />
 		<link rel="stylesheet" href="css/generazioneProgrammi.css" />
@@ -39,7 +41,7 @@
 	</head>
 	<body onload="checkCookieSettings();addOptionsConfigurazioni();addOptionsGruppiSviluppi();/*addOptionsListaSviluppi()*/">
 		<?php include('struttura.php'); ?>
-        <div class="absoluteActionBar" style="top:100">
+        <div class="absoluteActionBar" id="actionBarGenerazioneProgrammi" style="top:100">
             <div class="absoluteActionBarSelectContainer">
                 Configurazione: 
                 <select id="selectConfigurazionePunzoni" style="max-width:150px" class="absoluteActionBarTransparentSelect" onchange="cleanContainerSviluppi()"></select>
@@ -51,11 +53,13 @@
             </div>
             <button class="absoluteActionBarButton" onclick="apriPopupNuovoGruppoSviluppi()">Crea nuovo gruppo sviluppi <i style="margin-left:5px" class="far fa-object-ungroup"></i></button>
             <button class="absoluteActionBarButton" onclick="apriPopupScegliGruppiSviluppi()">Gestisci gruppi sviluppi <i style="margin-left:5px" class="fad fa-cog"></i></button>
-			<div class="absoluteActionBarElement">
-                Inserisci sviluppo: 
-                <input type="text" id="inputInserisciSviluppo" maxlength="10">
+			<div class="absoluteActionBarElement" style="display:flex;flex-direction:row;align-items:center;">
+                <span>Inserisci sviluppi:</span> 
+				<textarea id="inputInserisciSviluppo"></textarea>
+				<!--<i class="fal fa-plus-circle" id="iconInserisciSviluppi" onclick="addSviluppo(document.getElementById('inputInserisciSviluppo'),document.getElementById('inputInserisciSviluppo').value)"></i>-->
+				<i class="fal fa-plus-circle" id="iconInserisciSviluppi" onclick="addSviluppi(document.getElementById('inputInserisciSviluppo'))"></i>
             </div>
-			<button class="absoluteActionBarButton" onclick="addSviluppo(document.getElementById('inputInserisciSviluppo'),document.getElementById('inputInserisciSviluppo').value)" style="margin-left:0px"><i class="fad fa-check-double"></i></button>
+			<!--<button class="absoluteActionBarButton" onclick="addSviluppo(document.getElementById('inputInserisciSviluppo'),document.getElementById('inputInserisciSviluppo').value)" style="margin-left:0px"><i class="far fa-plus-square"></i></button>-->
 		</div>
 		<div id="containerGenerazioneProgrammi">
 			<div class="containerGenerazioneProgrammiTitle">

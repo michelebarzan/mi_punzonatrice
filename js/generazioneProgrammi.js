@@ -198,6 +198,43 @@ function getListaSviluppi()
         });
     });
 }
+function addSviluppi(textarea)
+{
+    var absoluteActionBar=document.getElementById("actionBarGenerazioneProgrammi");
+    getFaSpinner(absoluteActionBar,"absoluteActionBar","Caricamento in corso...");
+    $(".absoluteActionBarButton").prop("disabled",true);
+    $("#selectConfigurazionePunzoni").prop("disabled",true);
+    $("#selectGruppoSviluppi").prop("disabled",true);
+
+    var codici=textarea.value.split("\n");
+    console.log(codici);
+
+    var error=false;
+    var codiciErrati=[];
+    codici.forEach(function(codice)
+    {
+        if(codice[0]!=="+" || codice.length!==10)
+        {
+            error=true;
+            codiciErrati.push(codice);
+        }
+        else
+        {
+            if(codice==null || codice=="" || codice==" ")
+            {
+
+            }
+            else
+                addSviluppo(null,codice);
+        }
+    });
+
+    if(error)
+    {
+        window.alert("Alcuni codici non sono validi.\n"+codiciErrati.join(','));
+    }
+    textarea.value="";
+}
 async function addSviluppo(input,sviluppo)
 {
     if(sviluppo!=null)
@@ -271,7 +308,7 @@ async function addSviluppo(input,sviluppo)
                 popupActions.setAttribute("id","popupActions"+idItemSviluppo);
 
                 var bntGeneraProgramma=document.createElement("button");
-                bntGeneraProgramma.setAttribute("onclick","generaProgrammaSviluppo(this,'"+sviluppo+"',true,false,true)");
+                bntGeneraProgramma.setAttribute("onclick","generaProgrammaSviluppo(false,this,'"+sviluppo+"',true,false,true)");
                 bntGeneraProgramma.setAttribute("class","btnGeneraSviluppo");
                 bntGeneraProgramma.setAttribute("id","btnGeneraSviluppo"+idItemSviluppo);
                 bntGeneraProgramma.innerHTML='Genera NC <i class="fad fa-layer-plus" style="margin-left:5px"></i>';
@@ -743,7 +780,7 @@ function generaTuttiProgrammiSviluppo()
     {
         document.getElementById("buttonTabellaSoluzioniConflittiNomiBreviSviluppi").style.display="none";
 
-        document.getElementById("buttonGeneraTuttiSviluppi").innerHTML='<i style="color:#4C91CB" class="fad fa-spinner-third fa-spin"></i>';
+        document.getElementById("buttonGeneraTuttiSviluppi").innerHTML='<i style="color:#4C91CB" class="fad fa-spinner-third fa-spin"></i><span id="progressoGeneraTutti"></span>';
         document.getElementById("buttonGeneraTuttiSviluppi").disabled=true;
 
         errorsArray=[];
@@ -751,6 +788,7 @@ function generaTuttiProgrammiSviluppo()
         var i=1;
         elencoSviluppi.forEach(function(sviluppo)
         {
+
             var idItemSviluppo=sviluppo.replace("+","");
             var button=document.getElementById("btnGeneraSviluppo"+idItemSviluppo);
             if(elencoSviluppi.length==i)
@@ -758,13 +796,13 @@ function generaTuttiProgrammiSviluppo()
             else
                 last=false;
             
-            generaProgrammaSviluppo(button,sviluppo,false,last,false);
+            generaProgrammaSviluppo(i+1,button,sviluppo,false,last,false);
 
             i++;
         });
     }
 }
-async function generaProgrammaSviluppo(button,sviluppo,alert,last,autoDownload)
+async function generaProgrammaSviluppo(progress,button,sviluppo,alert,last,autoDownload)
 {
     button.innerHTML='<i style="color:#4C91CB" class="fad fa-spinner-third fa-spin"></i>';
     button.disabled=true;
@@ -776,6 +814,11 @@ async function generaProgrammaSviluppo(button,sviluppo,alert,last,autoDownload)
 
     var responseListaLavorazioni=await getlistaLavorazioni(sviluppo,configurazione);
 
+    if(progress!=false)
+    {
+        document.getElementById("progressoGeneraTutti").innerHTML=progress+'/'+elencoSviluppi.length;
+    }
+    
     var errorsListaLavorazioni=false;
     if(responseListaLavorazioni.toLowerCase().indexOf("error")>-1 || responseListaLavorazioni.toLowerCase().indexOf("notice")>-1 || responseListaLavorazioni.toLowerCase().indexOf("warning")>-1)
     {
@@ -1147,6 +1190,16 @@ function checkGenerato(sviluppo,idItemSviluppo)
     {
         if(status=="success")
         {
+            var count=document.getElementsByClassName("itemSviluppo").length;
+            //console.log(count+"/"+elencoSviluppi.length);
+            if(count==elencoSviluppi.length)
+            {
+                removeFaSpinner("absoluteActionBar");
+                $(".absoluteActionBarButton").prop("disabled",false);
+                $("#selectConfigurazionePunzoni").prop("disabled",false);
+                $("#selectGruppoSviluppi").prop("disabled",false);
+            }
+            
             if(response.indexOf("error")>-1 || response.indexOf("notice")>-1 || response.indexOf("warning")>-1)
             {
                 Swal.fire
@@ -1316,7 +1369,7 @@ function apriPopupNuovoGruppoSviluppi()
     var formInput=document.createElement("textarea");
     formInput.setAttribute("class","popupNuovoGruppoInput");
     formInput.setAttribute("id","popupNuovoGruppocodice");
-    formInput.setAttribute("maxlength","10");
+    //formInput.setAttribute("maxlength","10");
 
     inputContainer.appendChild(formInput);
 
@@ -1436,8 +1489,21 @@ async function apriPopupScegliGruppiSviluppi()
     formInput.setAttribute("class","popupNuovoGruppoInput");
     formInput.setAttribute("id","popupScegliGrupponome");
 
+    var gruppi=[];
+
     var gruppiSviluppiResponse=await getGruppiSviluppi();
-    if(gruppiSviluppiResponse.toLowerCase().indexOf("error")>-1 || gruppiSviluppiResponse.toLowerCase().indexOf("notice")>-1 || gruppiSviluppiResponse.toLowerCase().indexOf("warning")>-1)
+    try {
+        gruppi=JSON.parse(gruppiSviluppiResponse);
+    } catch (error) {
+        Swal.fire
+        ({
+            type: 'error',
+            title: 'Errore',
+            text: "Se il problema persiste contatta l' amministratore"
+        });
+        console.log(gruppiSviluppiResponse);
+    }
+    /*if(gruppiSviluppiResponse.toLowerCase().indexOf("error")>-1 || gruppiSviluppiResponse.toLowerCase().indexOf("notice")>-1 || gruppiSviluppiResponse.toLowerCase().indexOf("warning")>-1)
     {
         Swal.fire
         ({
@@ -1448,7 +1514,7 @@ async function apriPopupScegliGruppiSviluppi()
         console.log(gruppiSviluppiResponse);
     }
     else
-        var gruppi=JSON.parse(gruppiSviluppiResponse);
+        gruppi=JSON.parse(gruppiSviluppiResponse);*/
     
     gruppi.forEach(function(gruppo)
     {
@@ -1571,7 +1637,7 @@ async function apriPopupGestisciGruppiSviluppi(id_gruppo)
     var formInput=document.createElement("textarea");
     formInput.setAttribute("class","popupNuovoGruppoInput");
     formInput.setAttribute("id","popupNuovoGruppocodice");
-    formInput.setAttribute("maxlength","10");
+    //formInput.setAttribute("maxlength","10");
 
     inputContainer.appendChild(formInput);
 
@@ -1749,7 +1815,7 @@ function rimuoviCodicePupupModificaGruppo(itemCodice,codice)
 }
 function aggiungiCodicePupupModificaGruppo()
 {
-    var input=document.getElementById("popupNuovoGruppocodice");
+    /*var input=document.getElementById("popupNuovoGruppocodice");
     var codice=input.value;
 
     if(codice==null || codice=="" || codice==" " || codice[0]!=="+" || codice.length!==10)
@@ -1782,44 +1848,118 @@ function aggiungiCodicePupupModificaGruppo()
         itemCodice.appendChild(itemCodiceButton);
 
         container.appendChild(itemCodice);
+    }*/
+    var input=document.getElementById("popupNuovoGruppocodice");
+    //var codice=input.value;
+
+    var codici=input.value.split("\n");
+    //console.log(codici);
+
+    var error=false;
+    var codiciErrati=[];
+    codici.forEach(function(codice)
+    {
+        if(codice==null || codice=="" || codice==" " || codice[0]!=="+" || codice.length!==10)
+        {
+            error=true;
+            codiciErrati.push(codice);
+        }
+        else
+        {
+            if(codice==null || codice=="" || codice==" ")
+            {
+
+            }
+            else
+            {
+                codiciModificaGruppo.push(codice.replace("+",""));
+
+                var container=document.getElementById("popupNuovoGruppoCodiciContainer");
+
+                var itemCodice=document.createElement("div");
+                itemCodice.setAttribute("class","popupNuovoGruppoItemCodice");
+
+                var itemCodiceName=document.createElement("div");
+                itemCodiceName.innerHTML=codice;
+
+                var itemCodiceButton=document.createElement("button");
+                itemCodiceButton.setAttribute("title","Rimuovi");
+                itemCodiceButton.setAttribute("onclick","rimuoviCodicePupupNuovoGruppo(this.parentElement,'"+codice+"')");
+
+                var itemCodiceButtonIcon=document.createElement("i");
+                itemCodiceButtonIcon.setAttribute("class","far fa-times");
+                itemCodiceButton.appendChild(itemCodiceButtonIcon);
+
+                itemCodice.appendChild(itemCodiceName);
+                itemCodice.appendChild(itemCodiceButton);
+
+                container.appendChild(itemCodice);
+            }
+        }
+    });
+
+    if(error)
+    {
+        window.alert("Alcuni codici non sono validi.\n"+codiciErrati.join(','));
     }
+    input.value="";
 }
 function aggiungiCodicePupupNuovoGruppo()
 {
     var input=document.getElementById("popupNuovoGruppocodice");
-    var codice=input.value;
+    //var codice=input.value;
 
-    if(codice==null || codice=="" || codice==" " || codice[0]!=="+" || codice.length!==10)
+    var codici=input.value.split("\n");
+    //console.log(codici);
+
+    var error=false;
+    var codiciErrati=[];
+    codici.forEach(function(codice)
     {
-        window.alert("Codice non valido");
-    }
-    else
+        if(codice[0]!=="+" || codice.length!==10)
+        {
+            error=true;
+            codiciErrati.push(codice);
+        }
+        else
+        {
+            if(codice==null || codice=="" || codice==" ")
+            {
+
+            }
+            else
+            {
+                codiciNuovoGruppo.push(codice.replace("+",""));
+
+                var container=document.getElementById("popupNuovoGruppoCodiciContainer");
+
+                var itemCodice=document.createElement("div");
+                itemCodice.setAttribute("class","popupNuovoGruppoItemCodice");
+
+                var itemCodiceName=document.createElement("div");
+                itemCodiceName.innerHTML=codice;
+
+                var itemCodiceButton=document.createElement("button");
+                itemCodiceButton.setAttribute("title","Rimuovi");
+                itemCodiceButton.setAttribute("onclick","rimuoviCodicePupupNuovoGruppo(this.parentElement,'"+codice+"')");
+
+                var itemCodiceButtonIcon=document.createElement("i");
+                itemCodiceButtonIcon.setAttribute("class","far fa-times");
+                itemCodiceButton.appendChild(itemCodiceButtonIcon);
+
+                itemCodice.appendChild(itemCodiceName);
+                itemCodice.appendChild(itemCodiceButton);
+
+                container.appendChild(itemCodice);
+            }
+        }
+    });
+
+    if(error)
     {
-        input.value="";
-
-        codiciNuovoGruppo.push(codice.replace("+",""));
-
-        var container=document.getElementById("popupNuovoGruppoCodiciContainer");
-
-        var itemCodice=document.createElement("div");
-        itemCodice.setAttribute("class","popupNuovoGruppoItemCodice");
-
-        var itemCodiceName=document.createElement("div");
-        itemCodiceName.innerHTML=codice;
-
-        var itemCodiceButton=document.createElement("button");
-        itemCodiceButton.setAttribute("title","Rimuovi");
-        itemCodiceButton.setAttribute("onclick","rimuoviCodicePupupNuovoGruppo(this.parentElement,'"+codice+"')");
-
-        var itemCodiceButtonIcon=document.createElement("i");
-        itemCodiceButtonIcon.setAttribute("class","far fa-times");
-        itemCodiceButton.appendChild(itemCodiceButtonIcon);
-
-        itemCodice.appendChild(itemCodiceName);
-        itemCodice.appendChild(itemCodiceButton);
-
-        container.appendChild(itemCodice);
+        window.alert("Alcuni codici non sono validi.\n"+codiciErrati.join(','));
     }
+    input.value="";
 }
 function rimuoviCodicePupupNuovoGruppo(itemCodice,codice)
 {
@@ -1834,6 +1974,12 @@ async function addCodiciGruppo(select,gruppo)
 {
     if(gruppo!=null && gruppo!="")
     {
+        var absoluteActionBar=document.getElementById("actionBarGenerazioneProgrammi");
+        getFaSpinner(absoluteActionBar,"absoluteActionBar","Caricamento in corso...");
+        $(".absoluteActionBarButton").prop("disabled",true);
+        $("#selectConfigurazionePunzoni").prop("disabled",true);
+        $("#selectGruppoSviluppi").prop("disabled",true);
+
         var nome_gruppo=await getNomeGruppoById(gruppo);
         select.value="";
         select.setAttribute("title",nome_gruppo);

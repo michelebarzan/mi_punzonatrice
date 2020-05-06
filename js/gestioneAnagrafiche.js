@@ -133,6 +133,19 @@
                 orderType:orderType
             });
         }
+        if(table=="svilpan_punzonatrice")
+        {
+            getEditableTable
+            ({
+                table:'svilpan_punzonatrice',
+                editable: true,
+                container:'containerSommarioArchivi',
+                readOnlyColumns:['id_svilpan'],
+				noInsertColumns:['id_svilpan'],
+                orderBy:orderBy,
+                orderType:orderType
+            });
+        }
         if(table=="scantonature")
         {
             $("#btnManualeScantonature").show("fast","swing");

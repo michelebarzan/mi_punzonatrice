@@ -586,7 +586,7 @@
 
                                 $n_punzonate=intval($angolo_scantonatura/$lavorazione["spostamento"])+1;
 
-                                $x_punta=$infoSviluppo["LUNG"]-$lavorazione["LUNG1"]-$arretramento_x+$lavorazione["POSX"];
+                                $x_punta=$lavorazione["LUNG1"]-$arretramento_x+$lavorazione["POSX"];
                                 $y_punta=$lavorazione["POSY"]+$lavorazione["distanza_punta_triangolo"];
 
                                 $arrayResponse["x_punta_alto"]=$x_punta;
@@ -743,7 +743,7 @@
                             $lavorazione["LUNG2"]=$infoPannellil['LUNG2'];
 
                             $istruzione["posizione"]=$lavorazione["punzone"]["posizione"];
-                            $istruzione["xPunzonata"]=$infoSviluppo["LUNG"]-$lavorazione["LUNG1"]-$arretramento_x+$lavorazione["POSX"];
+                            $istruzione["xPunzonata"]=$lavorazione["LUNG1"]-$arretramento_x+$lavorazione["POSX"];
                             $istruzione["yPunzonata"]=0+$lavorazione["POSY"];
                             $istruzione["orientamento"]=$lavorazione["orientamento"];
                             $istruzione["rotazione"]=$lavorazione["rotazione"];
@@ -865,7 +865,7 @@
 
                                 $n_punzonate=intval($angolo_scantonatura/$lavorazione["spostamento"])+1;
 
-                                $x_punta=$infoSviluppo["LUNG"]-$lavorazione["LUNG1"]-$arretramento_x+$lavorazione["POSX"];
+                                $x_punta=$lavorazione["LUNG1"]-$arretramento_x+$lavorazione["POSX"];
                                 $y_punta=$infoSviluppo["HALT"]-$lavorazione["POSY"]-$lavorazione["distanza_punta_triangolo"];
 
                                 $arrayResponse["x_punta_basso"]=$x_punta;
@@ -1023,7 +1023,7 @@
                             $lavorazione["LUNG2"]=$infoPannellil['LUNG2'];
 
                             $istruzione["posizione"]=$lavorazione["punzone"]["posizione"];
-                            $istruzione["xPunzonata"]=$infoSviluppo["LUNG"]-$lavorazione["LUNG1"]-$arretramento_x+$lavorazione["POSX"];
+                            $istruzione["xPunzonata"]=$lavorazione["LUNG1"]-$arretramento_x+$lavorazione["POSX"];
                             $istruzione["yPunzonata"]=$infoSviluppo["HALT"]-$lavorazione["POSY"];
                             $istruzione["orientamento"]=$lavorazione["orientamento"];
                             $istruzione["rotazione"]=$lavorazione["rotazione"];
@@ -1530,7 +1530,7 @@
                 $colonna="sup";
         }
 
-        $qArretramento="SELECT [$colonna] FROM [mi_punzonatrice_parametri].[dbo].[svilpan_punzonatrice] WHERE tipo='$tipo'";
+        $qArretramento="SELECT [$colonna] FROM [dbo].[svilpan_punzonatrice] WHERE tipo='$tipo'";
         $rArretramento=sqlsrv_query($conn,$qArretramento);
         if($rArretramento==FALSE)
         {
@@ -1683,7 +1683,16 @@
 
         $n_colpi=(intval($n_colpi_minimo))+1;
 
-        $distanza=($yp2-$yp1)/($n_colpi-1);
+        if($n_colpi*$punzoneCorrente["dx"]<($lavorazione['DIMY']/2)-($larghezza_microgiunture/2))
+            $n_colpi++;
+
+        if($n_colpi==1)
+        {
+            $distanza=($lavorazione['DIMY']/2)-($larghezza_microgiunture/2)-$punzoneCorrente["dx"];
+            $n_colpi=2;
+        }
+        else
+            $distanza=($yp2-$yp1)/($n_colpi-1);
 
         //orrizzontali
 
@@ -1699,7 +1708,16 @@
 
         $n_colpi2=(intval($n_colpi_minimo2))+1;
 
-        $distanza2=($xp4-$xp3)/($n_colpi2-1);
+        if($n_colpi2*$punzoneCorrente["dx"]<($lavorazione['DIMX']/2)-($larghezza_microgiunture/2))
+            $n_colpi2++;
+
+        if($n_colpi2==1)
+        {
+            $distanza2=($lavorazione['DIMX']/2)-($larghezza_microgiunture/2)-$punzoneCorrente["dx"];
+            $n_colpi2=2;
+        }
+        else
+            $distanza2=($xp4-$xp3)/($n_colpi2-1);
 
         $arretramento_x=floatval(getArretramento($orientamento_pannello,"x",$infoSviluppo['TIPO'],$conn));
         $arretramento_y=0-floatval(getArretramento($orientamento_pannello,"y",$infoSviluppo['TIPO'],$conn));
