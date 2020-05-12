@@ -2,12 +2,8 @@
 <html>
 	<head>
 		<title>Autenticazione</title>
-		<link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+		<link href="css/fonts.css" rel="stylesheet">
 		<link rel="stylesheet" href="css/styleAV2.css" />
-		<style>
-			@import url(http://fonts.googleapis.com/css?family=Exo:100,200,400);
-			@import url(http://fonts.googleapis.com/css?family=Source+Sans+Pro:700,400,300);
-		</style>
 		<script>
 		function login() 
 		{

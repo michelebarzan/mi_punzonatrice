@@ -6,10 +6,8 @@
 ?>
 <html>
 	<head>
-		<link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
-		<link href="https://fonts.googleapis.com/css?family=Nunito|Raleway" rel="stylesheet">
-		<link href="https://fonts.googleapis.com/css?family=Quicksand:300" rel="stylesheet">
-		<script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+		<link href="css/fonts.css" rel="stylesheet">
+		<script type="text/javascript" src="js_libraries/jquery.min.js"></script>
 		<title><?php echo $pageName; ?></title>
 		<link rel="stylesheet" href="css/main.css" />
 		<script src="js/struttura.js"></script>
@@ -32,6 +30,10 @@
 					<div class="homepageLink" data-tooltip="Consulta e modifica la tabella parametri" onclick="gotopath('gestioneParametri.php')">
 						<i class="fal fa-table"></i>
 						<div>Gestione parametri</div>
+					</div>
+					<div class="homepageLink" data-tooltip="Importa lotti e schede" onclick="gotopath('importazioneLotti.php')">
+						<i class="fad fa-file-import"></i>
+						<div>Importazione schede lotti</div>
 					</div>
 				</div>
 				<div id="statisticheSwContainer"></div>

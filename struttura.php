@@ -1,9 +1,6 @@
 	<?php $appName="mi_punzonatrice"; ?>
-	<link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
-	<link href="https://fonts.googleapis.com/css?family=Nunito|Raleway" rel="stylesheet">
-	<link href="https://fonts.googleapis.com/css?family=Quicksand:300" rel="stylesheet">
-	<script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
-	<!--<script src="https://kit.fontawesome.com/4462bc49a0.js" crossorigin="anonymous"></script>-->
+	<link href="css/fonts.css" rel="stylesheet">
+	<script type="text/javascript" src="js_libraries/jquery.min.js"></script>
 	<link href="css_libraries/fontawesome/css/all.css" rel="stylesheet">
 	<script src="js_libraries/canvasjs.min.js"></script>
 	<div id="header" class="header" >

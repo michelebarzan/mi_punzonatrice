@@ -6,12 +6,12 @@
 ?>
 <html>
 	<head>
-		<link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+		<link href="css/fonts.css" rel="stylesheet">
 		<link rel="stylesheet" href="js_libraries/spinners/spinner.css" />
 		<script src="js_libraries/spinners/spinner.js"></script>
 		<script src="editableTableParametri/editableTable.js"></script>
 		<link rel="stylesheet" href="editableTableParametri/editableTable.css" />
-		<script src="https://cdn.jsdelivr.net/npm/sweetalert2@8"></script>
+		<script src="js_libraries/sweetalert.js"></script>
 		<title><?php echo $pageName; ?></title>
 		<link rel="stylesheet" href="css/main.css" />
 		<link rel="stylesheet" href="css/gestioneAnagrafiche.css" />

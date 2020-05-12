@@ -1,0 +1,340 @@
+body
+{
+	margin:0px auto;
+	width:100%;
+    height:100%;
+    overflow:hidden;
+}
+html
+{
+	width:100%;
+    height:100%;
+}
+.top-action-bar
+{
+    width:calc(100% - 100px);
+    height: 31px;
+    background-color: #dadada;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    display: flex;
+    box-sizing: border-box;
+    padding-left: 5px;
+    padding-right: 5px;
+    border-radius: 3px;
+    margin-top: 100px;
+    margin-left: 50px;
+    margin-right: 50px;
+    border:0.5px solid rgba(0,0,0,0.20);
+}
+.action-bar-input
+{
+    padding-right: 5px;
+    padding-left: 5px;
+    margin-left: 5px;
+    margin-top: 4.5px;
+    margin-bottom: 4.5px;
+    height: 21px;
+    background-color:#ebebeb ;
+    border-radius: 3px;
+    border:0.5px solid rgba(0,0,0,0.20);
+    transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+    color:black;
+    width:70px;
+    font-family: 'Montserrat',sans-serif;
+    font-size: 12px;
+}
+.action-bar-text-icon-button
+{
+    padding-right: 10px;
+    padding-left: 10px;
+    margin-right: 10px;
+    margin-left: 10px;
+    margin-top: 4.5px;
+    margin-bottom: 4.5px;
+    height: 21px;
+    cursor: pointer;
+    background-color:#ebebeb ;
+    border-radius: 3px;
+    border:0.5px solid rgba(0,0,0,0.20);
+    transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+    outline: none;
+    color:black;
+}
+.action-bar-text-icon-button:hover
+{
+    background-color: #ddd;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+}
+.action-bar-text-icon-button span
+{
+    font-family: 'Montserrat',sans-serif;
+    /*color:black;*/
+    font-size: 12px;
+}
+.action-bar-text-icon-button i
+{
+    /*color:black;*/
+    margin-left:10px
+}
+.action-bar-icon-button
+{
+    margin-left: 5px;
+    margin-top: 4.5px;
+    margin-bottom: 4.5px;
+    height: 21px;
+    cursor: pointer;
+    background-color:#ebebeb ;
+    border-radius: 3px;
+    border:0.5px solid rgba(0,0,0,0.20);
+    transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+    outline: none;
+}
+.action-bar-icon-button:hover
+{
+    /*background-color: #ddd;*/
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+}
+.action-bar-item
+{
+    margin-right: 10px;
+    margin-left: 10px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    height:20px;
+    display:flex ;
+    flex-direction: row;
+    align-items: center;
+    justify-content: start;
+    font-family: 'Montserrat',sans-serif;
+    font-size: 12px;
+    color:#404040;
+}
+.ms-parent span,.ms-parent,.ms-choice,.ms-drop
+{
+    font-family:'Montserrat',sans-serif;
+    font-size:12px;
+    text-align:left;
+}
+.action-bar-item select
+{
+    font-family: 'Montserrat',sans-serif;
+    font-size: 12px;
+    background-color: transparent;
+    border:none;
+    outline: none;
+    border-bottom:2px solid transparent;
+    transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+}
+.action-bar-item select:hover
+{
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+}
+.action-bar-item select:disabled
+{
+    color:gray;
+    cursor: not-allowed;
+}
+.action-bar-button
+{
+    margin-right: 5px;
+    margin-left: 5px;
+    margin-top: 4px;
+    margin-bottom: 5px;
+    height:20px;
+    border:none;
+    display:flex ;
+    border-radius: 2px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-evenly;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+    /*background-color: rgb(211, 211, 211);*/
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+}
+.action-bar-button:hover
+{
+    box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+}
+.action-bar-button:active
+{
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+}
+.action-bar-button span
+{
+    font-family: 'Montserrat',sans-serif;
+    font-size: 12px;
+    color:black;
+}
+.action-bar-button i
+{
+    margin-left: 5px;
+}
+#dropFileContainer
+{
+    box-sizing: border-box;
+    padding:7px;
+    margin-top: 20px;
+    width: 100%;
+    height: 250px;
+    width:calc(100% - 100px);
+    transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    display: flex;
+    box-sizing: border-box;
+    margin-left: 50px;
+    margin-right: 50px;
+    /*background-color: rgba(76, 146, 203, 0.082);*/
+    background-color: white;
+    border:2px solid #4C91CB;
+    border-radius: 4px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+#dropFileMessageContainer
+{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color:black;
+}
+#dropFileMessage
+{
+    font-family: 'Montserrat',sans-serif;
+    font-size: 14px;
+    margin-top: 5px;
+}
+#dropFileIcon
+{
+    font-size: 22px;
+}
+#fileItem
+{
+    box-sizing: border-box;
+    padding:7px;
+    background-color: #f1f1f1;
+    border-radius:2px;
+    border:1px solid rgb(185, 185, 185);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+}
+#fileItem i
+{
+    color:green;
+}
+#fileItem span
+{
+    color:black;
+    font-family: 'Montserrat',sans-serif;
+    font-size: 12px;
+    margin-left: 5px;
+}
+#importazioneLottiContainer
+{
+    box-sizing: border-box;
+    margin-top: 20px;
+    width: 100%;
+    width:calc(100% - 100px);
+    transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+    display: flex;
+    margin-left: 50px;
+    margin-right: 50px;
+    border-radius: 4px;
+    align-items: center;
+    justify-content: center;
+    height: 70%;
+}
+/*-------------------------------------------------------*/
+#importazioneLottiTable
+{
+    width:100%;
+    height: 100%;
+    /*margin:5px;*/
+    border-collapse: collapse;
+    table-layout: fixed;
+    border-radius: 4px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+}
+#importazioneLottiTable thead
+{
+    background-color: #404040;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    height: 35px;
+    line-height: 35px;
+    width:100%;
+    padding-right: 8px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+#importazioneLottiTable th
+{
+    /*height: 50px;*/
+    height: 35px;
+    color:rgb(223, 222, 222);
+    padding-left:5px;
+    padding-right:5px;
+    background-color: transparent;
+    box-sizing: border-box;
+    float: left;
+    transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+    font-family: 'Montserrat',sans-serif;
+    font-weight: normal;
+    font-size:11px;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#importazioneLottiTable th:hover
+{
+    /*color:#4C91CB;*/
+    background-color: #555555;
+}
+#importazioneLottiTable td
+{
+    display: block;
+    float: left;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: 'Montserrat',sans-serif;
+    color:black;
+    font-size:11px;
+    padding-left:5px;
+    padding-right:5px;
+    height: 25px;
+    line-height: 25px;
+    box-sizing: border-box;
+    /*transition: all 0.5s;*/
+}
+#importazioneLottiTable tbody tr:nth-child(odd) 
+{
+    background-color:rgba(76, 146, 203, 0.199);
+}
+#importazioneLottiTable tbody tr:nth-child(even) 
+{
+    background-color:rgb(235, 235, 235);
+}
+#importazioneLottiTable tbody tr
+{
+    display: flex;
+}
+#importazioneLottiTable tbody, #importazioneLottiTable thead
+{
+    display: block;
+}
+#importazioneLottiTable tbody 
+{
+   overflow-y: scroll;
+   height: calc(100% - 36px);
+   border-radius: 4px;
+   margin-top:1px;
+}
