@@ -497,7 +497,7 @@
                         }
                         if(punzone.forma=="rettangolo")
                         {
-                            liAltriPunzoni.setAttribute("style","border-radius:2px;");
+                            liAltriPunzoni.setAttribute("style","border-radius:2px;transform: rotate("+punzone.angolo+"deg);");
                             liAltriPunzoni.innerHTML=punzone.dx+"X"+punzone.dy;
                         }
                         if(punzone.forma=="triangolo")
@@ -507,7 +507,7 @@
                         }
                         if(punzone.forma=="asola")
                         {
-                            liAltriPunzoni.setAttribute("style","line-height:25px;margin-top:5px;margin-bottom:5px;width:35px;height:25px;border-radius:17.7px/12.5px");
+                            liAltriPunzoni.setAttribute("style","line-height:25px;margin-top:5px;margin-bottom:5px;width:35px;height:25px;border-radius:17.7px/12.5px;transform: rotate("+punzone.angolo+"deg);");
                             liAltriPunzoni.innerHTML=punzone.dx+"X"+punzone.dy;
                         }
 
@@ -668,13 +668,18 @@
                         }
                         if(punzone.forma=="rettangolo")
                         {
-                            liPunzoniConfigurazione.setAttribute("style","border-radius:2px;");
+                            liPunzoniConfigurazione.setAttribute("style","border-radius:2px;transform: rotate("+punzone.angolo+"deg);");
                             liPunzoniConfigurazione.innerHTML=punzone.dx+"X"+punzone.dy;
                         }
                         if(punzone.forma=="triangolo")
                         {
                             liPunzoniConfigurazione.setAttribute('style','background-color:transparent;background-size:33px 38px;box-shadow:none;background-image: url("../images/triangle.png");background-position: center center;background-repeat: no-repeat;');
                             liPunzoniConfigurazione.innerHTML=punzone.angolo;
+                        }
+                        if(punzone.forma=="asola")
+                        {
+                            liPunzoniConfigurazione.setAttribute("style","line-height:25px;margin-top:5px;margin-bottom:5px;width:35px;height:25px;border-radius:17.7px/12.5px;transform: rotate("+punzone.angolo+"deg);");
+                            liPunzoniConfigurazione.innerHTML=punzone.dx+"X"+punzone.dy;
                         }
                         document.getElementById("posizioniPunzoniTorretta"+punzone.posizione).appendChild(liPunzoniConfigurazione);
                     });

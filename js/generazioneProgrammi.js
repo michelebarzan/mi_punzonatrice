@@ -9,10 +9,17 @@ var checkboxControlloConflitti;
 var checkboxAutoDownload;
 var checkboxDownloadSingoliFile;
 var importazioniSchede=[];
+var oldSviluppiGenerati=[];
+var lunghezza_nome_breve_sviluppo;
 /*esempio funzionante di due radio button
 var checkboxDownloadArchivio;
 var checkboxDownloadSingoliFile;*/
 
+async function onLoadActions()
+{
+    lunghezza_nome_breve_sviluppo=await getParametro("lunghezza_nome_breve_sviluppo");
+    checkCookieSettings();addOptionsConfigurazioni();addOptionsGruppiSviluppi();
+}
 async function checkCookieSettings()
 {
     var coockieCheckboxAutoDownload=await getCookie("checkboxAutoDownload");
@@ -229,7 +236,9 @@ function addSviluppi(codici)
 
             }
             else
+            {
                 addSviluppo(null,codice);
+            }
         }
     });
 
@@ -275,7 +284,7 @@ async function addSviluppo(input,sviluppo)
 
                 var itemSviluppoName=document.createElement("div");
                 itemSviluppoName.setAttribute("class","itemSviluppoName");
-                itemSviluppoName.innerHTML="<u><b>CODSVI:</b></u> "+sviluppo;
+                itemSviluppoName.innerHTML="<u><b>CODSVI:</b></u> <span class='label-codsvi'>"+sviluppo+"</span>";
                 itemSviluppo.appendChild(itemSviluppoName);
 
                 var itemSviluppoExists=document.createElement("div");
@@ -327,7 +336,7 @@ async function addSviluppo(input,sviluppo)
                 popupActions.setAttribute("id","popupActions"+idItemSviluppo);
 
                 var bntGeneraProgramma=document.createElement("button");
-                bntGeneraProgramma.setAttribute("onclick","generaProgrammaSviluppo(false,this,'"+sviluppo+"',true,false,true)");
+                bntGeneraProgramma.setAttribute("onclick","generaProgrammaSviluppo(false,this,'"+sviluppo+"',true,false,true,false)");
                 bntGeneraProgramma.setAttribute("class","btnGeneraSviluppo");
                 bntGeneraProgramma.setAttribute("id","btnGeneraSviluppo"+idItemSviluppo);
                 bntGeneraProgramma.innerHTML='Genera NC <i class="fad fa-layer-plus" style="margin-left:5px"></i>';
@@ -360,7 +369,11 @@ async function addSviluppo(input,sviluppo)
 
                 itemSviluppo.appendChild(controlliSviluppoContainer);
 
-                document.getElementById("containerGenerazioneProgrammiContainerSviluppi").appendChild(itemSviluppo);
+                var containerGenerazioneProgrammiContainerSviluppi=document.getElementById("containerGenerazioneProgrammiContainerSviluppi");
+
+                containerGenerazioneProgrammiContainerSviluppi.insertBefore(itemSviluppo, containerGenerazioneProgrammiContainerSviluppi.firstChild);
+
+                //containerGenerazioneProgrammiContainerSviluppi.appendChild(itemSviluppo);
             }
         }
         else
@@ -509,7 +522,6 @@ function getParametro(nome)
 }
 async function checkConflittoNomeBreveSviluppi()
 {
-    var lunghezza_nome_breve_sviluppo=await getParametro("lunghezza_nome_breve_sviluppo");
     lunghezza_nome_breve_sviluppo=parseInt(lunghezza_nome_breve_sviluppo);
 
     if(conflittiSviluppiGenerati.length>0)
@@ -656,6 +668,25 @@ function getTableConflittiSviluppi()
                     {
                         document.getElementById("buttonTabellaSoluzioniConflittiNomiBreviSviluppi").style.display="block";
 
+                        var outerContainer=document.createElement("div");
+                        outerContainer.setAttribute("style","display:flex;flex-direction:column");
+
+                        var exportContainer=document.createElement("div");
+                        exportContainer.setAttribute("class","export-container-tabella-soluzione-conflitti-nomi-brevi-sviluppo");
+                        var span=document.createElement("span");
+                        span.innerHTML="Salva";
+                        exportContainer.appendChild(span);
+                        var btn=document.createElement("button");
+                        btn.setAttribute("onclick","salvaImmagineTabellaSoluzioneConflitti()");
+                        btn.innerHTML='<i class="far fa-image"></i>';
+                        exportContainer.appendChild(btn);
+                        var btn=document.createElement("button");
+                        btn.setAttribute("onclick",'exportTableToExcel("tableConflittiSviluppi", "Soluzione conflitti");');
+                        btn.innerHTML='<i class="far fa-file-excel"></i>';
+                        exportContainer.appendChild(btn);
+
+                        outerContainer.appendChild(exportContainer);
+
                         var table=document.createElement("table");
                         table.setAttribute("id","tableConflittiSviluppi");
 
@@ -686,10 +717,12 @@ function getTableConflittiSviluppi()
                             table.appendChild(row);
                         });
 
+                        outerContainer.appendChild(table);
+
                         Swal.fire
                         ({
                             title: 'Soluzioni conflitti nomi brevi sviluppi',
-                            html:table.outerHTML,
+                            html:outerContainer.outerHTML,
                             showCancelButton:false,
                             showCloseButton:true,
                             showConfirmButton:false,
@@ -701,79 +734,554 @@ function getTableConflittiSviluppi()
         });
     }
 }
-function scaricaTuttiProgrammiSviluppo (button,container)
+function exportTableToExcel(tableID, filename = '')
 {
-    document.getElementById("buttonTabellaSoluzioniConflittiNomiBreviSviluppi").style.display="none";
-    if(checkboxControlloConflitti)
-    {
-        checkConflittoNomeBreveSviluppi();
+    var downloadLink;
+    var dataType = 'application/vnd.ms-excel';
+    var tableSelect = document.getElementById(tableID);
+    var tableHTML = tableSelect.outerHTML.replace(/ /g, '%20');
+    
+    // Specify file name
+    filename = filename?filename+'.xls':'excel_data.xls';
+    
+    // Create download link element
+    downloadLink = document.createElement("a");
+    
+    document.body.appendChild(downloadLink);
+    
+    if(navigator.msSaveOrOpenBlob){
+        var blob = new Blob(['\ufeff', tableHTML], {
+            type: dataType
+        });
+        navigator.msSaveOrOpenBlob( blob, filename);
+    }else{
+        // Create a link to the file
+        downloadLink.href = 'data:' + dataType + ', ' + tableHTML;
+    
+        // Setting the file name
+        downloadLink.download = filename;
+        
+        //triggering the function
+        downloadLink.click();
     }
+}
+function salvaImmagineTabellaSoluzioneConflitti()
+{
+    html2canvas(document.querySelector("#tableConflittiSviluppi")).then(canvas => 
+    {
+        var imgSrc = canvas.toDataURL("image/png");
+        var link=document.createElement("a");
+        link.setAttribute("download","download");
+        link.setAttribute("href",imgSrc);
+        link.setAttribute("id","imageTableConflittiSviluppi");
+        link.setAttribute("style","display:none");
+        
+        document.body.appendChild(link);
+        document.getElementById("imageTableConflittiSviluppi").click();
+    });
+}
+function trasferisciProgrammiSviluppo(button)
+{
+    var files=[];
 
     if(sviluppiGenerati.length>0)
     {
-        button.innerHTML='<i style="color:#4C91CB" class="fad fa-spinner-third fa-spin"></i>';
-        button.disabled=true;
+        var icon=button.getElementsByTagName("i")[0];
+        icon.setAttribute("class","fad fa-spinner-third fa-spin");
+        
+        Swal.fire
+        ({
+            title: 'Caricamento in corso...',
+            html: '<i style="color:4C91CB" class="fad fa-spinner-third fa-spin fa-4x"></i>',
+            showConfirmButton:false,
+            showCloseButton:true
+        });
 
+        document.getElementById("buttonTabellaSoluzioniConflittiNomiBreviSviluppi").style.display="none";
+        if(checkboxControlloConflitti)
+        {
+            checkConflittoNomeBreveSviluppi();
+            if(conflittiSviluppiGenerati.length>0)
+            {
+                var configurazione=document.getElementById("selectConfigurazionePunzoni").value;
+                var JSONconflittiSviluppiGenerati=JSON.stringify(conflittiSviluppiGenerati);
+                var JSONsviluppiGenerati=JSON.stringify(sviluppiGenerati);
+
+                $.get("scaricaTuttiProgrammiConflittiSviluppo.php",
+                {
+                    configurazione,
+                    JSONconflittiSviluppiGenerati,
+                    JSONsviluppiGenerati,
+                    php_session_id
+                },
+                function(response, status)
+                {
+                    if(status=="success")
+                    {
+                        if(response.toLowerCase().indexOf("error")>-1 || response.toLowerCase().indexOf("notice")>-1 || response.toLowerCase().indexOf("warning")>-1)
+                        {
+                            Swal.fire
+                            ({
+                                type: 'error',
+                                title: 'Errore',
+                                text: "Impossibile scaricare i programmi in conflitto. Se il problema persiste contatta l' amministratore"
+                            });
+                            console.log(response);
+                        }
+                        else
+                        {
+                            var arrayResponse=JSON.parse(response);
+                            if(arrayResponse["sviluppiErr"].length>0)
+                            {
+                                errorsArray=arrayResponse["sviluppiErr"];
+                                var outputErrori="";
+                                errorsArray.forEach(function(sviluppoE)
+                                {
+                                    outputErrori+="<li>"+sviluppoE+"</li>"
+                                });
+
+                                Swal.fire
+                                ({
+                                    type: 'error',
+                                    title: 'Non è stato possibile scaricare alcuni programmi in conflitto:',
+                                    html: "<div style='text-align:center;'><ul style='padding: 0;list-style-type:none'>"+outputErrori+"</ul></div>"
+                                });
+                            }
+                            var downloadLink=document.createElement("a");
+                            downloadLink.setAttribute("href","nc/download/"+arrayResponse['rarName']);
+                            downloadLink.setAttribute("style","display:none");
+                            downloadLink.setAttribute("id","downloadLinkScaricaTuttiSviluppi");
+                            document.body.appendChild(downloadLink);
+                            document.getElementById("downloadLinkScaricaTuttiSviluppi").click();
+                            document.getElementById("downloadLinkScaricaTuttiSviluppi").remove();
+
+                            var file=
+                            {
+                                "nome":arrayResponse['rarName'],
+                                "codici":conflittiSviluppiGenerati
+                            }
+                            files.push(file);                            
+
+                            if(sviluppiGenerati.length>0)
+                            {                        
+                                var configurazione=document.getElementById("selectConfigurazionePunzoni").value;
+                                var JSONsviluppiGenerati=JSON.stringify(sviluppiGenerati);
+                        
+                                $.get("scaricaTuttiProgrammiSviluppo.php",
+                                {
+                                    configurazione,
+                                    JSONsviluppiGenerati
+                                },
+                                function(response, status)
+                                {
+                                    if(status=="success")
+                                    {
+                                        if(response.toLowerCase().indexOf("error")>-1 || response.toLowerCase().indexOf("notice")>-1 || response.toLowerCase().indexOf("warning")>-1)
+                                        {
+                                            Swal.fire
+                                            ({
+                                                type: 'error',
+                                                title: 'Errore',
+                                                text: "Impossibile scaricare i programmi. Se il problema persiste contatta l' amministratore"
+                                            });
+                                            console.log(response);
+                                        }
+                                        else
+                                        {
+                                            var arrayResponse=JSON.parse(response);
+                                            if(arrayResponse["sviluppiErr"].length>0)
+                                            {
+                                                errorsArray=arrayResponse["sviluppiErr"];
+                                                var outputErrori="";
+                                                errorsArray.forEach(function(sviluppoE)
+                                                {
+                                                    outputErrori+="<li>"+sviluppoE+"</li>"
+                                                });
+                        
+                                                Swal.fire
+                                                ({
+                                                    type: 'error',
+                                                    title: 'Non è stato possibile scaricare alcuni programmi:',
+                                                    html: "<div style='text-align:center;'><ul style='padding: 0;list-style-type:none'>"+outputErrori+"</ul></div>"
+                                                });
+                                            }
+                                            var downloadLink=document.createElement("a");
+                                            downloadLink.setAttribute("href","nc/download/"+arrayResponse['rarName']);
+                                            downloadLink.setAttribute("style","display:none");
+                                            downloadLink.setAttribute("id","downloadLinkScaricaTuttiSviluppi");
+                                            document.body.appendChild(downloadLink);
+                                            document.getElementById("downloadLinkScaricaTuttiSviluppi").click();
+                                            document.getElementById("downloadLinkScaricaTuttiSviluppi").remove();
+
+                                            var file=
+                                            {
+                                                "nome":arrayResponse['rarName'],
+                                                "codici":sviluppiGenerati
+                                            }
+                                            files.push(file);
+                                            creaEseguibileTrasferimento(files,icon);
+                                        }
+                                    }
+                                    else
+                                        console.log(status)
+                                });
+                            }
+                            else
+                                creaEseguibileTrasferimento(files,icon);
+                        }
+                    }
+                    else
+                        console.log(status)
+                });
+            }
+            else
+            {
+                var configurazione=document.getElementById("selectConfigurazionePunzoni").value;
+                var JSONsviluppiGenerati=JSON.stringify(sviluppiGenerati);
+        
+                $.get("scaricaTuttiProgrammiSviluppo.php",
+                {
+                    configurazione,
+                    JSONsviluppiGenerati
+                },
+                function(response, status)
+                {
+                    if(status=="success")
+                    {
+                        if(response.toLowerCase().indexOf("error")>-1 || response.toLowerCase().indexOf("notice")>-1 || response.toLowerCase().indexOf("warning")>-1)
+                        {
+                            Swal.fire
+                            ({
+                                type: 'error',
+                                title: 'Errore',
+                                text: "Impossibile scaricare i programmi. Se il problema persiste contatta l' amministratore"
+                            });
+                            console.log(response);
+                        }
+                        else
+                        {
+                            var arrayResponse=JSON.parse(response);
+                            if(arrayResponse["sviluppiErr"].length>0)
+                            {
+                                errorsArray=arrayResponse["sviluppiErr"];
+                                var outputErrori="";
+                                errorsArray.forEach(function(sviluppoE)
+                                {
+                                    outputErrori+="<li>"+sviluppoE+"</li>"
+                                });
+        
+                                Swal.fire
+                                ({
+                                    type: 'error',
+                                    title: 'Non è stato possibile scaricare alcuni programmi:',
+                                    html: "<div style='text-align:center;'><ul style='padding: 0;list-style-type:none'>"+outputErrori+"</ul></div>"
+                                });
+                            }
+                            var downloadLink=document.createElement("a");
+                            downloadLink.setAttribute("href","nc/download/"+arrayResponse['rarName']);
+                            downloadLink.setAttribute("style","display:none");
+                            downloadLink.setAttribute("id","downloadLinkScaricaTuttiSviluppi");
+                            document.body.appendChild(downloadLink);
+                            document.getElementById("downloadLinkScaricaTuttiSviluppi").click();
+                            document.getElementById("downloadLinkScaricaTuttiSviluppi").remove();
+
+                            var file=
+                            {
+                                "nome":arrayResponse['rarName'],
+                                "codici":sviluppiGenerati
+                            }
+                            files.push(file);
+                            creaEseguibileTrasferimento(files,icon);
+                        }
+                    }
+                    else
+                        console.log(status)
+                });
+            }
+        }
+        else
+        {
+            var configurazione=document.getElementById("selectConfigurazionePunzoni").value;
+            var JSONsviluppiGenerati=JSON.stringify(sviluppiGenerati);
+    
+            $.get("scaricaTuttiProgrammiSviluppo.php",
+            {
+                configurazione,
+                JSONsviluppiGenerati
+            },
+            function(response, status)
+            {
+                if(status=="success")
+                {
+                    if(response.toLowerCase().indexOf("error")>-1 || response.toLowerCase().indexOf("notice")>-1 || response.toLowerCase().indexOf("warning")>-1)
+                    {
+                        Swal.fire
+                        ({
+                            type: 'error',
+                            title: 'Errore',
+                            text: "Impossibile scaricare i programmi. Se il problema persiste contatta l' amministratore"
+                        });
+                        console.log(response);
+                    }
+                    else
+                    {
+                        var arrayResponse=JSON.parse(response);
+                        if(arrayResponse["sviluppiErr"].length>0)
+                        {
+                            errorsArray=arrayResponse["sviluppiErr"];
+                            var outputErrori="";
+                            errorsArray.forEach(function(sviluppoE)
+                            {
+                                outputErrori+="<li>"+sviluppoE+"</li>"
+                            });
+    
+                            Swal.fire
+                            ({
+                                type: 'error',
+                                title: 'Non è stato possibile scaricare alcuni programmi:',
+                                html: "<div style='text-align:center;'><ul style='padding: 0;list-style-type:none'>"+outputErrori+"</ul></div>"
+                            });
+                        }
+                        var downloadLink=document.createElement("a");
+                        downloadLink.setAttribute("href","nc/download/"+arrayResponse['rarName']);
+                        downloadLink.setAttribute("style","display:none");
+                        downloadLink.setAttribute("id","downloadLinkScaricaTuttiSviluppi");
+                        document.body.appendChild(downloadLink);
+                        document.getElementById("downloadLinkScaricaTuttiSviluppi").click();
+                        document.getElementById("downloadLinkScaricaTuttiSviluppi").remove();
+
+                        var file=
+                        {
+                            "nome":arrayResponse['rarName'],
+                            "codici":sviluppiGenerati
+                        }
+                        files.push(file);
+                        creaEseguibileTrasferimento(files,icon);
+                    }
+                }
+                else
+                    console.log(status)
+            });
+        }
+    }
+}
+function creaEseguibileTrasferimento(files,icon)
+{
+    console.log(files);
+    if(files.length>0)
+    {
         var configurazione=document.getElementById("selectConfigurazionePunzoni").value;
-        var JSONsviluppiGenerati=JSON.stringify(sviluppiGenerati);
-
-        $.get("scaricaTuttiProgrammiSviluppo.php",
+        var JSONfiles=JSON.stringify(files);
+        $.post("creaEseguibileTrasferimentoSviluppi.php",
         {
             configurazione,
-            JSONsviluppiGenerati
+            JSONfiles
         },
         function(response, status)
         {
             if(status=="success")
             {
-                button.disabled=false;
-                button.innerHTML='Scarica tutti <i class="far fa-download" style="margin-left:5px"></i>';
+                Swal.close();
+                icon.setAttribute("class","fad fa-microscope");
+
                 if(response.toLowerCase().indexOf("error")>-1 || response.toLowerCase().indexOf("notice")>-1 || response.toLowerCase().indexOf("warning")>-1)
                 {
                     Swal.fire
                     ({
                         type: 'error',
                         title: 'Errore',
-                        text: "Impossibile scaricare i programmi. Se il problema persiste contatta l' amministratore"
+                        text: "Errore. Se il problema persiste contatta l' amministratore"
                     });
                     console.log(response);
                 }
                 else
                 {
-                    var arrayResponse=JSON.parse(response);
-                    if(arrayResponse["sviluppiErr"].length>0)
-                    {
-                        errorsArray=arrayResponse["sviluppiErr"];
-                        var outputErrori="";
-                        errorsArray.forEach(function(sviluppoE)
-                        {
-                            outputErrori+="<li>"+sviluppoE+"</li>"
-                        });
-
-                        Swal.fire
-                        ({
-                            type: 'error',
-                            title: 'Non è stato possibile scaricare alcuni programmi:',
-                            html: "<div style='text-align:center;'><ul style='padding: 0;list-style-type:none'>"+outputErrori+"</ul></div>"
-                        });
-                    }
                     var downloadLink=document.createElement("a");
-                    downloadLink.setAttribute("href","nc/download/"+arrayResponse['rarName']);
+                    downloadLink.setAttribute("href","nc/RAR.exe");
                     downloadLink.setAttribute("style","display:none");
-                    downloadLink.setAttribute("id","downloadLinkScaricaTuttiSviluppi");
-                    container.appendChild(downloadLink);
-                    document.getElementById("downloadLinkScaricaTuttiSviluppi").click();
-                    document.getElementById("downloadLinkScaricaTuttiSviluppi").remove();
+                    downloadLink.setAttribute("id","downloadLink_rar");
+                    document.body.appendChild(downloadLink);
+                    document.getElementById("downloadLink_rar").click();
+                    document.getElementById("downloadLink_rar").remove();
 
-                    if(checkboxControlloConflitti)
+                    setTimeout(function()
                     {
-                        solveConflittoNomeBreveSviluppi(button,container);
-                    }
+                        var downloadLink=document.createElement("a");
+                        downloadLink.setAttribute("href","nc/trasferimento_nc.bat");
+                        downloadLink.setAttribute("style","display:none");
+                        downloadLink.setAttribute("id","downloadLink_trasferimento_nc");
+                        document.body.appendChild(downloadLink);
+                        document.getElementById("downloadLink_trasferimento_nc").click();
+                        document.getElementById("downloadLink_trasferimento_nc").remove();
+                    }, 100);
+
+                    var arrow=document.createElement("div");
+                    arrow.setAttribute("id","downloadArrow");
+                    arrow.innerHTML='<i class="fal fa-horizontal-rule" style="transform: rotate(90deg);"></i><i class="fal fa-horizontal-rule" style="transform: rotate(90deg);"></i><i class="fal fa-long-arrow-down"></i>';
+                    document.body.appendChild(arrow);
+
+                    Swal.fire
+                    ({
+                        type: 'success',
+                        title: 'Operazione completata',
+                        text: "Esegui il file scaricato, lo trovi in basso a sinistra",
+                        showConfirmButton:false,
+                        showCloseButton:true
+                    }).then((result) =>
+                    {
+                        console.log(files.length);
+                        if(conflittiSviluppiGenerati.length>0)
+                        {
+                            getTableConflittiSviluppi();
+                        }
+                    });
+                    setTimeout(function()
+                    {
+                        document.getElementById("downloadArrow").remove();
+                        if(conflittiSviluppiGenerati.length>0)
+                        {
+                            getTableConflittiSviluppi();
+                        }
+                    }, 10000);
                 }
             }
             else
                 console.log(status)
         });
+    }
+}
+function scaricaTuttiProgrammiSviluppo (button,container)
+{
+    document.getElementById("buttonTabellaSoluzioniConflittiNomiBreviSviluppi").style.display="none";
+    if(checkboxControlloConflitti)
+    {
+        checkConflittoNomeBreveSviluppi();
+        solveConflittoNomeBreveSviluppi(button,container);
+        if(sviluppiGenerati.length>0)
+        {
+            button.innerHTML='<i style="color:#4C91CB" class="fad fa-spinner-third fa-spin"></i>';
+            button.disabled=true;
+    
+            var configurazione=document.getElementById("selectConfigurazionePunzoni").value;
+            var JSONsviluppiGenerati=JSON.stringify(sviluppiGenerati);
+    
+            $.get("scaricaTuttiProgrammiSviluppo.php",
+            {
+                configurazione,
+                JSONsviluppiGenerati
+            },
+            function(response, status)
+            {
+                if(status=="success")
+                {
+                    button.disabled=false;
+                    button.innerHTML='Scarica tutti <i class="far fa-download" style="margin-left:5px"></i>';
+                    if(response.toLowerCase().indexOf("error")>-1 || response.toLowerCase().indexOf("notice")>-1 || response.toLowerCase().indexOf("warning")>-1)
+                    {
+                        Swal.fire
+                        ({
+                            type: 'error',
+                            title: 'Errore',
+                            text: "Impossibile scaricare i programmi. Se il problema persiste contatta l' amministratore"
+                        });
+                        console.log(response);
+                    }
+                    else
+                    {
+                        var arrayResponse=JSON.parse(response);
+                        if(arrayResponse["sviluppiErr"].length>0)
+                        {
+                            errorsArray=arrayResponse["sviluppiErr"];
+                            var outputErrori="";
+                            errorsArray.forEach(function(sviluppoE)
+                            {
+                                outputErrori+="<li>"+sviluppoE+"</li>"
+                            });
+    
+                            Swal.fire
+                            ({
+                                type: 'error',
+                                title: 'Non è stato possibile scaricare alcuni programmi:',
+                                html: "<div style='text-align:center;'><ul style='padding: 0;list-style-type:none'>"+outputErrori+"</ul></div>"
+                            });
+                        }
+                        var downloadLink=document.createElement("a");
+                        downloadLink.setAttribute("href","nc/download/"+arrayResponse['rarName']);
+                        downloadLink.setAttribute("style","display:none");
+                        downloadLink.setAttribute("id","downloadLinkScaricaTuttiSviluppi");
+                        container.appendChild(downloadLink);
+                        document.getElementById("downloadLinkScaricaTuttiSviluppi").click();
+                        document.getElementById("downloadLinkScaricaTuttiSviluppi").remove();
+                    }
+                }
+                else
+                    console.log(status)
+            });
+        }
+    }
+    else
+    {
+        if(sviluppiGenerati.length>0)
+        {
+            button.innerHTML='<i style="color:#4C91CB" class="fad fa-spinner-third fa-spin"></i>';
+            button.disabled=true;
+    
+            var configurazione=document.getElementById("selectConfigurazionePunzoni").value;
+            var JSONsviluppiGenerati=JSON.stringify(sviluppiGenerati);
+    
+            $.get("scaricaTuttiProgrammiSviluppo.php",
+            {
+                configurazione,
+                JSONsviluppiGenerati
+            },
+            function(response, status)
+            {
+                if(status=="success")
+                {
+                    button.disabled=false;
+                    button.innerHTML='Scarica tutti <i class="far fa-download" style="margin-left:5px"></i>';
+                    if(response.toLowerCase().indexOf("error")>-1 || response.toLowerCase().indexOf("notice")>-1 || response.toLowerCase().indexOf("warning")>-1)
+                    {
+                        Swal.fire
+                        ({
+                            type: 'error',
+                            title: 'Errore',
+                            text: "Impossibile scaricare i programmi. Se il problema persiste contatta l' amministratore"
+                        });
+                        console.log(response);
+                    }
+                    else
+                    {
+                        var arrayResponse=JSON.parse(response);
+                        if(arrayResponse["sviluppiErr"].length>0)
+                        {
+                            errorsArray=arrayResponse["sviluppiErr"];
+                            var outputErrori="";
+                            errorsArray.forEach(function(sviluppoE)
+                            {
+                                outputErrori+="<li>"+sviluppoE+"</li>"
+                            });
+    
+                            Swal.fire
+                            ({
+                                type: 'error',
+                                title: 'Non è stato possibile scaricare alcuni programmi:',
+                                html: "<div style='text-align:center;'><ul style='padding: 0;list-style-type:none'>"+outputErrori+"</ul></div>"
+                            });
+                        }
+                        var downloadLink=document.createElement("a");
+                        downloadLink.setAttribute("href","nc/download/"+arrayResponse['rarName']);
+                        downloadLink.setAttribute("style","display:none");
+                        downloadLink.setAttribute("id","downloadLinkScaricaTuttiSviluppi");
+                        container.appendChild(downloadLink);
+                        document.getElementById("downloadLinkScaricaTuttiSviluppi").click();
+                        document.getElementById("downloadLinkScaricaTuttiSviluppi").remove();
+                    }
+                }
+                else
+                    console.log(status)
+            });
+        }
     }
 }
 function rimuoviTuttiProgrammiSviluppo()
@@ -794,7 +1302,7 @@ function rimuoviTuttiProgrammiSviluppo()
     }
     cleanContainerSviluppi();
 }
-function generaTuttiProgrammiSviluppo()
+function generaTuttiProgrammiSviluppo(trasferisci)
 {
     sviluppiGenerati=[];
     conflittiSviluppiGenerati=[];
@@ -819,13 +1327,13 @@ function generaTuttiProgrammiSviluppo()
             else
                 last=false;
             
-            generaProgrammaSviluppo(i+1,button,sviluppo,false,last,false);
+            generaProgrammaSviluppo(i+1,button,sviluppo,false,last,false,trasferisci);
 
             i++;
         });
     }
 }
-async function generaProgrammaSviluppo(progress,button,sviluppo,alert,last,autoDownload)
+async function generaProgrammaSviluppo(progress,button,sviluppo,alert,last,autoDownload,traferisci)
 {
     button.innerHTML='<i style="color:#4C91CB" class="fad fa-spinner-third fa-spin"></i>';
     button.disabled=true;
@@ -839,7 +1347,9 @@ async function generaProgrammaSviluppo(progress,button,sviluppo,alert,last,autoD
 
     if(progress!=false)
     {
-        document.getElementById("progressoGeneraTutti").innerHTML=progress+'/'+elencoSviluppi.length;
+        try {
+            document.getElementById("progressoGeneraTutti").innerHTML=progress+'/'+elencoSviluppi.length;
+        } catch (error) {}
     }
     
     var errorsListaLavorazioni=false;
@@ -1079,11 +1589,17 @@ async function generaProgrammaSviluppo(progress,button,sviluppo,alert,last,autoD
         }
         else
         {
-            Swal.fire
-            ({
-                type: 'success',
-                title: 'Sviluppi generati'
-            });
+            /*console.log(traferisci);
+            if(traferisci)
+                trasferisciProgrammiSviluppo();
+            else
+            {*/
+                Swal.fire
+                ({
+                    type: 'success',
+                    title: 'Sviluppi generati'
+                });
+            //}
         }
     }
 }

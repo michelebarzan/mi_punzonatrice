@@ -12,7 +12,7 @@
 
     foreach($punzoni as $id_punzone)
     {
-        $qPunzoni="INSERT INTO [dbo].[configurazioni_punzoni] ([configurazione],[punzone],[in_uso],[posizione]) VALUES ($configurazione,$id_punzone,'false','$posizione')";
+        $qPunzoni="INSERT INTO [dbo].[configurazioni_punzoni] ([configurazione],[punzone],[in_uso],[posizione],[punzone_microgiunture]) VALUES ($configurazione,$id_punzone,'false','$posizione','false')";
         $rPunzoni=sqlsrv_query($conn,$qPunzoni);
         if($rPunzoni==FALSE)
         {

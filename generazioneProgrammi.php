@@ -9,6 +9,7 @@
 		<link href="css/fonts.css" rel="stylesheet">
 		<link rel="stylesheet" href="js_libraries/spinners/spinner.css" />
 		<script src="js_libraries/spinners/spinner.js"></script>
+		<script src="js_libraries/html2canvas.min.js"></script>
 		<script src="editableTable/editableTable.js"></script>
 		<link rel="stylesheet" href="editableTable/editableTable.css" />
 		<script src="js_libraries/sweetalert.js"></script>
@@ -41,7 +42,7 @@
 			}
 		</style>
 	</head>
-	<body onload="checkCookieSettings();addOptionsConfigurazioni();addOptionsGruppiSviluppi()">
+	<body onload="onLoadActions()">
 		<?php include('struttura.php'); ?>
         <!--<div class="absoluteActionBar" id="actionBarGenerazioneProgrammi" style="top:100;display:none">
             <div class="absoluteActionBarSelectContainer">
@@ -88,8 +89,9 @@
 				<div class="absoluteActionBarElement" style="height:28px;line-height:28px;background-color:#4C91CB;box-sizing:border-box;padding-left:10px;padding-right:10px;margin-left:-5px;color:white">
 					Elenco sviluppi 
 				</div>
-				<button class="absoluteActionBarButton" style="margin-top:4px;width:120px" id="buttonGeneraTuttiSviluppi" onclick="generaTuttiProgrammiSviluppo()" >Genera tutti <i class="fad fa-layer-plus" style="margin-left:5px"></i></button>
-				<button class="absoluteActionBarButton" style="margin-top:4px;width:120px" onclick="scaricaTuttiProgrammiSviluppo(this,this.parentElement)" >Scarica tutti <i class="far fa-download" style="margin-left:5px"></i></button>
+				<button class="absoluteActionBarButton" style="margin-top:4px;width:120px" id="buttonGeneraTuttiSviluppi" onclick="generaTuttiProgrammiSviluppo(false)" >Genera tutti <i class="fad fa-layer-plus" style="margin-left:5px"></i></button>
+				<button class="absoluteActionBarButton" style="margin-top:4px;width:120px" id="buttonTrasferisci" onclick="trasferisciProgrammiSviluppo(this)" >Trasferisci <i class="fad fa-microscope" style="margin-left:5px"></i></button>
+				<button class="absoluteActionBarButton" style="margin-top:4px;width:120px" onclick="scaricaTuttiProgrammiSviluppo(this,this.parentElement)" >Scarica nc <i class="far fa-download" style="margin-left:5px"></i></button>
 				<button class="absoluteActionBarButton" style="margin-top:4px;width:120px" onclick="rimuoviTuttiProgrammiSviluppo()" >Rimovi tutti <i class="far fa-times" style="color:gray;margin-left:5px"></i></button>
 				<button class="absoluteActionBarButton" style="margin-top:4px;width:120px" onclick="creaGruppoDaElencoSviluppi()" >Crea gruppo <i class="far fa-object-ungroup" style="color:gray;margin-left:5px"></i></button>
 				<button class="absoluteActionBarButton" style="margin-top:4px;width:120px" onclick="getPopupImpostazioni()" >Impostazioni <i class="fad fa-sliders-v" style="margin-left:5px"></i></button>
