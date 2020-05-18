@@ -16,7 +16,7 @@
                 FROM dbo.configurazioni_punzoni INNER JOIN
                                         dbo.anagrafica_punzoni ON dbo.configurazioni_punzoni.punzone = dbo.anagrafica_punzoni.id_punzone INNER JOIN
                                         dbo.anagrafica_multitools ON dbo.anagrafica_punzoni.multitool = dbo.anagrafica_multitools.nome
-                WHERE (dbo.configurazioni_punzoni.configurazione = $configurazione)) AS derivedtbl_1";
+                WHERE (dbo.configurazioni_punzoni.configurazione LIKE '$configurazione')) AS derivedtbl_1";
     $rMultitool=sqlsrv_query($conn,$qMultitool);
     if($rMultitool==FALSE)
     {
@@ -40,7 +40,7 @@
 FROM            dbo.configurazioni_punzoni INNER JOIN
             dbo.anagrafica_punzoni ON dbo.configurazioni_punzoni.punzone = dbo.anagrafica_punzoni.id_punzone INNER JOIN
             dbo.anagrafica_multitools ON dbo.anagrafica_punzoni.multitool = dbo.anagrafica_multitools.nome
-WHERE        (dbo.configurazioni_punzoni.configurazione = $configurazione) AND (dbo.anagrafica_punzoni.multitool = '$nomeMultitool')
+WHERE        (dbo.configurazioni_punzoni.configurazione LIKE '$configurazione') AND (dbo.anagrafica_punzoni.multitool = '$nomeMultitool')
 ORDER BY dbo.configurazioni_punzoni.posizione";
             $rPunzoni=sqlsrv_query($conn,$qPunzoni);
             if($rPunzoni==FALSE)

@@ -55,6 +55,10 @@
 		</div>
 		<div class="absoluteActionBarSommarioArchivi">
 			<div id="editableTableControls" class="absoluteActionBarControls">
+				<div class="absoluteActionBarSommarioArchiviElement" id="selectConfigurazionePunzoniScantonatureContainer">
+					Configurazione: 
+					<select id="selectConfigurazionePunzoniScantonature" onchange="getTable('scantonature')"></select>
+				</div>
 				<div class="absoluteActionBarSommarioArchiviElement">Righe: <span id="rowsNumEditableTable"></span></div>
 				<button class="absoluteActionBarSommarioArchiviButton" onclick="scaricaExcel('containerSommarioArchivi')">Esporta <i style="margin-left:5px;color:green" class="far fa-file-excel"></i></button>
 				<button class="absoluteActionBarSommarioArchiviButton" onclick="resetFilters();getTable(selectetTable)">Ripristina <i style="margin-left:5px" class="fal fa-filter"></i></button>

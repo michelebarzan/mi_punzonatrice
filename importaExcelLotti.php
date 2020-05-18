@@ -10,6 +10,10 @@
     foreach($data as $rowEncoded)
     {
         $row = json_decode(json_encode($rowEncoded, true),true);
+		if(!isset($row["qta_ordinata_terzista"]))
+			$qta_ordinata_terzista=$row["quantita_ordinata_terzista"];
+		else
+			$qta_ordinata_terzista=$row["qta_ordinata_terzista"];
         $qPunzoni="INSERT INTO [dbo].[importazioni_schede]
                             ([commessa]
                             ,[lotto]
@@ -51,7 +55,7 @@
                             ,'".$row['tipo']."'
                             ,'".$row['quantita_ord_prod']."'
                             ,'".$row['quantita_prodotta']."'
-                            ,'".$row['qta_ordinata_terzista']."')";
+                            ,'".$qta_ordinata_terzista."')";
         $rPunzoni=sqlsrv_query($conn,$qPunzoni);
         if($rPunzoni==FALSE)
         {

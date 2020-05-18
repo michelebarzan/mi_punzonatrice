@@ -46,10 +46,20 @@
         array_push($array_testo_programma,$istruzione);
 
         $codici=$file["codici"];
+		
+		$i=1;
         foreach($codici as $codice)
         {
             $istruzione='type '.$codice.'.nc >'.$porta_com;
             array_push($array_testo_programma,$istruzione);
+			
+			if($i!==sizeof($codici))
+			{
+				$istruzione='pause';
+				array_push($array_testo_programma,$istruzione);
+			}
+			
+			$i++;
         }
     }
 

@@ -77,8 +77,73 @@
                     type:"select",
                     options:multitoolOptions
                 }
-            ]
+            ];
         }
+        if(selectetTable=="scantonature")
+        {
+            var configurazioniResposne=await getConfigurazioni();
+            if(configurazioniResposne.indexOf("error")>-1 || configurazioniResposne.indexOf("notice")>-1 || configurazioniResposne.indexOf("warning")>-1)
+            {
+                Swal.fire
+                ({
+                    type: 'error',
+                    title: 'Errore',
+                    text: "Se il problema persiste contatta l' amministratore"
+                });
+                console.log(configurazioniResposne);
+            }
+            else
+            {
+                configurazioni=JSON.parse(configurazioniResposne);
+                var options=[];
+                configurazioni.forEach(function(configurazione)
+                {
+                    configurazione.punzoni.forEach(function(punzone)
+                    {
+                        var option=
+                        {
+                            value:punzone.id_configurazione_punzoni,
+                            label:"("+configurazione.nome+") - "+punzone.descrizione
+                        }
+                        options.push(option);
+                    });
+                });
+                specialColumns=
+                [
+                    {
+                        colonna:"configurazione_punzoni",
+                        type:"select",
+                        options
+                    }
+                ];
+            }
+            console.log(options);
+
+            var table2 = document.getElementById("myTable"+selectetTable);
+            for (var i = 1, row; row = table2.rows[i]; i++)
+            {
+                var configurazione_punzoni=row.cells[3].innerHTML;
+                if(configurazione_punzoni!="")
+                {
+                    configurazione_punzoni=parseInt(configurazione_punzoni);
+                    var punzone=getFirstObjByPropValue(options,"value",configurazione_punzoni);
+                    
+                    row.cells[3].innerHTML=punzone.label;
+                }
+            }
+        }
+    }
+    function getFirstObjByPropValue(array,prop,propValue)
+    {
+        var return_item;
+        array.forEach(function(item)
+        {
+            if(item[prop]==propValue)
+            {
+                return_item= item;
+            }
+        });
+        return return_item;
     }
     function getMultitools()
     {
@@ -117,6 +182,7 @@
     }
     function getTable(table,orderBy,orderType)
     {
+        $("#selectConfigurazionePunzoniScantonatureContainer").hide("fast","swing");
         $("#btnManualeScantonature").hide("fast","swing");
         $(".absoluteActionBarControls").hide("fast","swing");
         $("#editableTableControls").show("fast","swing");
@@ -148,6 +214,7 @@
         }
         if(table=="scantonature")
         {
+            getSelectConfigurazionePunzoniScantonature();
             $("#btnManualeScantonature").show("fast","swing");
             getEditableTable
             ({
@@ -159,6 +226,7 @@
                 orderBy:orderBy,
                 orderType:orderType
             });
+
         }
         if(table=="anagrafica_configurazioni")
         {
@@ -255,6 +323,7 @@
     }
     function setRowEditable(primaryKey,index,table,primaryKeyValue)
     {
+        //console.log(specialColumns)
         rowCells=[];
         var table2 = document.getElementById("myTable"+table);
         var colNum=table2.rows[index].cells.length;
@@ -285,9 +354,10 @@
                             var optionEl=document.createElement("option");
                             optionEl.setAttribute("value",colValue);
                             var selectedColLabel = options.filter(obj => {
-                                return obj.value === colValue
+                                return String(obj.value) === String(colValue)
                               });
-                            optionEl.innerHTML=selectedColLabel[0].label;
+                            if(selectedColLabel.length>0)
+                                optionEl.innerHTML=selectedColLabel[0].label;
                             select.appendChild(optionEl);
 
                             options.forEach(function(option)
@@ -332,6 +402,34 @@
         //console.log(rowCells);
         rowCells.splice(-1,1);
         //rowCells.shift();
+    }
+    async function getSelectConfigurazionePunzoniScantonature()
+    {
+        var configurazioniResponse=await getConfigurazioni();
+        if(configurazioniResponse.indexOf("error")>-1 || configurazioniResponse.indexOf("notice")>-1 || configurazioniResponse.indexOf("warning")>-1)
+        {
+            Swal.fire
+            ({
+                type: 'error',
+                title: 'Errore',
+                text: "Se il problema persiste contatta l' amministratore"
+            });
+            console.log(configurazioniResponse);
+        }
+        else
+        {
+            var configurazioni=JSON.parse(configurazioniResponse);
+            var select=document.getElementById("selectConfigurazionePunzoniScantonature");
+            //$("#selectConfigurazionePunzoniScantonatureContainer").show("fast","swing");
+            select.innerHTML="";
+            configurazioni.forEach(function(configurazione)
+            {
+                var option=document.createElement("option");
+                option.setAttribute("value",configurazione["id_configurazione"]);
+                option.innerHTML=configurazione["nome"];
+                select.appendChild(option);
+            });
+        }
     }
     async function addOptionsConfigurazioni()
     {
@@ -502,7 +600,7 @@
                         }
                         if(punzone.forma=="triangolo")
                         {
-                            liAltriPunzoni.setAttribute('style','background-color:transparent;box-shadow:none;background-size:33px 38px;background-image: url("../images/triangle.png");background-position: center center;background-repeat: no-repeat;');
+                            liAltriPunzoni.setAttribute('style','background-color:transparent;box-shadow:none;background-size:33px 38px;background-image: url("../mi_punzonatrice/images/triangle.png");background-position: center center;background-repeat: no-repeat;');
                             liAltriPunzoni.innerHTML=punzone.angolo;
                         }
                         if(punzone.forma=="asola")
@@ -673,7 +771,7 @@
                         }
                         if(punzone.forma=="triangolo")
                         {
-                            liPunzoniConfigurazione.setAttribute('style','background-color:transparent;background-size:33px 38px;box-shadow:none;background-image: url("../images/triangle.png");background-position: center center;background-repeat: no-repeat;');
+                            liPunzoniConfigurazione.setAttribute('style','background-color:transparent;background-size:33px 38px;box-shadow:none;background-image: url("../mi_punzonatrice/images/triangle.png");background-position: center center;background-repeat: no-repeat;');
                             liPunzoniConfigurazione.innerHTML=punzone.angolo;
                         }
                         if(punzone.forma=="asola")

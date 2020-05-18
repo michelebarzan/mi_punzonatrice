@@ -208,6 +208,7 @@
 
     //GENERO LE LAVORAZIONI PER ANGOLO A0-180
     lavorazioneAngoloA0_180($arrayResponse,$conn,$orientamento_svilpan,$infoSviluppo,$configurazione);
+    controllaErroreScantonatura($conn,$configurazione,$infoSviluppo['TIPO'],'A0-180');
     //------------------------------------------------------------------------------------------
 
     //GENERO LE LAVORAZIONI PER ANGOLO A180-360
@@ -216,10 +217,12 @@
 
     //GENERO LE LAVORAZIONI PER ANGOLO A270
     lavorazioneAngoloA270($arrayResponse,$conn,$orientamento_svilpan,$infoSviluppo,$configurazione);
+    controllaErroreScantonatura($conn,$configurazione,$infoSviluppo['TIPO'],'A270');
     //------------------------------------------------------------------------------------------
 
     //GENERO LE LAVORAZIONI PER ANGOLO B0-180
     lavorazioneAngoloB0_180($arrayResponse,$conn,$orientamento_svilpan,$infoSviluppo,$configurazione);
+    controllaErroreScantonatura($conn,$configurazione,$infoSviluppo['TIPO'],'B0-180');
     //------------------------------------------------------------------------------------------
 
     //GENERO LE LAVORAZIONI PER ANGOLO B180-360
@@ -228,7 +231,10 @@
 
     //GENERO LE LAVORAZIONI PER ANGOLO B270
     lavorazioneAngoloB270($arrayResponse,$conn,$orientamento_svilpan,$infoSviluppo,$configurazione);
+    controllaErroreScantonatura($conn,$configurazione,$infoSviluppo['TIPO'],'B270');
     //------------------------------------------------------------------------------------------
+
+    controllaErroreScantonatura($conn,$configurazione,$infoSviluppo['TIPO'],'A271-360');
 
     //MODIFICO LE COORDINATE DELLE LAVORAZIONI IN BASE ALL'ORIENTAMENTO DEL PANNELLO
     if($infoSviluppo["orientamento"]=="ruotato")
@@ -382,6 +388,9 @@
     $rowOutputNC="(TIPO: ".$infoSviluppo['TIPO'].")";
     array_push($outputNC,$rowOutputNC);
 
+    $rowOutputNC="(Orientamento: ".$infoSviluppo['orientamento'].")";
+    array_push($outputNC,$rowOutputNC);
+
     $HALTNC=get_string_w_2_decimal($infoSviluppo['HALT']);
     $LUNGNC=get_string_w_2_decimal($infoSviluppo['LUNG']);
 
@@ -523,6 +532,33 @@
     createFile($configurazione,$sviluppo,$outputNC,$conn);
 
     //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    function controllaErroreScantonatura($conn,$configurazione,$tipo,$lato)
+    {
+        /*$qcontrolla_errore_scantonatura="SELECT dbo.scantonature.id_scantonatura, dbo.scantonature.tipo, dbo.scantonature.lato, dbo.scantonature.configurazione_punzoni, dbo.scantonature.posx, dbo.scantonature.posy, dbo.scantonature.angolo, dbo.scantonature.interasse, 
+                    dbo.scantonature.ripetizioni, dbo.scantonature.rotazione, dbo.scantonature.lavorazioni, dbo.anagrafica_punzoni.id_punzone, dbo.anagrafica_punzoni.descrizione, dbo.anagrafica_punzoni.dx, dbo.anagrafica_punzoni.dy, 
+                    dbo.anagrafica_punzoni.forma, dbo.anagrafica_punzoni.angolo AS angoloPunzone, dbo.anagrafica_punzoni.ix, dbo.anagrafica_punzoni.iy, dbo.anagrafica_punzoni.codice, dbo.anagrafica_punzoni.nome,dbo.configurazioni_punzoni.posizione
+                    FROM dbo.scantonature INNER JOIN
+                    dbo.configurazioni_punzoni ON dbo.scantonature.configurazione_punzoni = dbo.configurazioni_punzoni.id_configurazione_punzoni INNER JOIN
+                    dbo.anagrafica_punzoni ON dbo.configurazioni_punzoni.punzone = dbo.anagrafica_punzoni.id_punzone
+                    WHERE (dbo.scantonature.configurazione_punzoni IN
+                    (SELECT DISTINCT id_configurazione_punzoni
+                        FROM dbo.configurazioni_punzoni AS configurazioni_punzoni_1
+                        WHERE (configurazione = $configurazione))) AND (dbo.scantonature.tipo = '".$tipo."') AND (dbo.scantonature.lato = '$lato') AND (dbo.scantonature.lavorazioni = 'error')";
+        $rcontrolla_errore_scantonatura=sqlsrv_query($conn,$qcontrolla_errore_scantonatura);
+        if($rcontrolla_errore_scantonatura==FALSE)
+        {
+            die("queryerr");
+        }
+        else
+        {
+            $rows1 = sqlsrv_has_rows( $rcontrolla_errore_scantonatura );
+            if ($rows1 === true)
+            {
+                die("generr|Errore impostato dall'utente nel programma scantonature per questo tipo di sviluppo (".$tipo.")$qcontrolla_errore_scantonatura");
+            }
+        }*/
+    }
 
     /*function lavorazioneAngoloA180_360(&$arrayResponse,$conn,$orientamento_svilpan,$infoSviluppo,$configurazione)
     {
