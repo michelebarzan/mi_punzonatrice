@@ -3,6 +3,9 @@ var excelRows;
 
 function onloadactions()
 {
+    orderBy="id_importazione";
+    orderType="DESC";
+    getTabellaImportazioni();
     $("html").on("drop", function(e) { e.preventDefault(); e.stopPropagation(); });
     $("html").on("dragover", function(e) {
         e.preventDefault();
@@ -15,7 +18,21 @@ function onloadactions()
         clearDropHereStyle();
     });
 }
+function getTabellaImportazioni()
+{
+    getEditableTable
+    ({
+        table:'importazioni_schede',
+        editable: false,
+        container:'importazioneLottiContainer',
+        orderBy:orderBy,
+        orderType:orderType
+    });
+}
+function editableTableLoad ()
+{
 
+}
 function getDropHereMessage()
 {
     openDropFileContainer();
@@ -296,6 +313,8 @@ function closeDropFileContainer()
     $("#dropFileMessageContainer").hide("fast","swing");
     var dropFileContainer=document.getElementById("dropFileContainer");
     dropFileContainer.style.height="auto";
+    dropFileContainer.style.minHeight="0px";
+    $("#importazioneLottiContainer").css("height","calc(100% - calc( 20px + 60px + 50px + 20px + 100px + 31px))");
     dropFileContainer.style.justifyContent="flex-start";
 }
 function openDropFileContainer()
@@ -307,6 +326,8 @@ function openDropFileContainer()
     $("#dropFileMessageContainer").show("fast","swing");
     var dropFileContainer=document.getElementById("dropFileContainer");
     dropFileContainer.style.height="";
+    dropFileContainer.style.minHeight="";
+    $("#importazioneLottiContainer").css("height","");
     dropFileContainer.style.justifyContent="";
 }
 function importaFile(button)

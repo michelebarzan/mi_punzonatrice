@@ -9,6 +9,8 @@
 		<link href="css/fonts.css" rel="stylesheet">
 		<link rel="stylesheet" href="js_libraries/spinners/spinner.css" />
 		<script src="js_libraries/spinners/spinner.js"></script>
+		<script src="editableTable/editableTable.js"></script>
+		<link rel="stylesheet" href="editableTable/editableTable.css" />
 		<script src="js_libraries/sweetalert.js"></script>
 		<title><?php echo $pageName; ?></title>
 		<link rel="stylesheet" href="css/main.css" />
@@ -39,7 +41,9 @@
 	<body onload="onloadactions()">
 		<?php include('struttura.php'); ?>
         <div class="top-action-bar" id="stampaChecklistActionBar">
-			<button class="action-bar-text-icon-button" id="bntImporta" style="margin-left:0px" onclick="importaFile(this)"><span>Importa</span><i class="fad fa-file-import"></i></button>
+			<button class="action-bar-text-icon-button" id="bntImporta" style="margin-left:0px;margin-right:5px" onclick="importaFile(this)"><span>Importa</span><i class="fad fa-file-import"></i></button>
+			<button class="action-bar-text-icon-button" style="margin-left:0px" onclick="getTabellaImportazioni()"><span>Cronologia importazioni</span><i class="fad fa-history"></i></button>
+			<div id="rowsNumEditableTable" style="display:none"></div>
 		</div>
         <div id="dropFileContainer" onclick="document.getElementById('inputScegliFile').click()" ondrop="getDrop(event)" ondragover="getDropHereStyle(event)" ondragleave="clearDropHereStyle(event)">
             <div id="dropFileMessageContainer">
