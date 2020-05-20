@@ -1483,8 +1483,8 @@ async function generaProgrammaSviluppo(progress,button,sviluppo,alert,last,autoD
                         setTimeout(function()
                         {
                             document.getElementById("linkScaricaSviluppo"+idItemSviluppo).click();
-                        }, 1000);
-                    }, 2000);
+                        }, 300);
+                    }, 500);
                     setTimeout(function()
                     {
                         button.innerHTML='Genera NC <i class="fad fa-layer-plus" style="margin-left:5px"></i>';
