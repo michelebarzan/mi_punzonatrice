@@ -7,9 +7,12 @@
     $importazioniSchede=[];
     $schedeLotti=[];
 
-    $query2="SELECT MAX(id_importazione) AS id_importazione, commessa, lotto, num_scheda, progr_scheda, codice_assieme, codice_componente, fin, finitura, num_lancio, anno_lancio, rif_ciclo, largh, alt, prof, ap, fori, tipo, quantita_ord_prod, quantita_prodotta, qta_ordinata_terzista
-            FROM dbo.importazioni_schede
-            GROUP BY commessa, lotto, num_scheda, progr_scheda, codice_assieme, codice_componente, fin, finitura, num_lancio, anno_lancio, rif_ciclo, largh, alt, prof, ap, fori, tipo, quantita_ord_prod, quantita_prodotta, qta_ordinata_terzista";	
+    $query2="SELECT DISTINCT 
+                         MAX(id_importazione) AS id_importazione, commessa, lotto, num_scheda, progr_scheda, codice_assieme, codice_componente, fin, finitura, num_lancio, anno_lancio, rif_ciclo, largh, alt, prof, ap, fori, tipo, 
+                         quantita_ord_prod, quantita_prodotta, qta_ordinata_terzista, CODELE
+FROM            dbo.importazioni_schede_view
+GROUP BY commessa, lotto, num_scheda, progr_scheda, codice_assieme, codice_componente, fin, finitura, num_lancio, anno_lancio, rif_ciclo, largh, alt, prof, ap, fori, tipo, quantita_ord_prod, quantita_prodotta, 
+                         qta_ordinata_terzista, CODELE";	
     $result2=sqlsrv_query($conn,$query2);
     if($result2==TRUE)
     {
@@ -36,6 +39,7 @@
             $rigaImportazioniSchede["quantita_ord_prod"]=$row2["quantita_ord_prod"];
             $rigaImportazioniSchede["quantita_prodotta"]=$row2["quantita_prodotta"];
             $rigaImportazioniSchede["qta_ordinata_terzista"]=$row2["qta_ordinata_terzista"];
+            $rigaImportazioniSchede["CODELE"]=$row2["CODELE"];
 
             array_push($importazioniSchede,$rigaImportazioniSchede);
         }

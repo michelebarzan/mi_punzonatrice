@@ -2647,13 +2647,13 @@ async function getSelects()
 
     if(selected.length>0)
     {
-        console.log(selected);
         importazioniSchede.importazioniSchede.forEach(function(riga)
         {
             var lotto_num_scheda=riga.lotto+"|"+riga.num_scheda;
             if(selected.includes(lotto_num_scheda))
-                codici.push(riga.codice_componente);
+                codici.push(riga.CODELE);
         });
+        console.log(codici);
         addSviluppi(codici);
     }
 }
