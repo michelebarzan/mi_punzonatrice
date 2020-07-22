@@ -2,19 +2,113 @@ md 5jgahmrkj51rtc1g41heol40
 del 5jgahmrkj51rtc1g41heol40\*.* /q
 move rar.exe 5jgahmrkj51rtc1g41heol40
 mode com2 4800,e,7,2
-move "nc_Torretta 1_26-05-2020_03-53-08.rar" 5jgahmrkj51rtc1g41heol40
+move "nc_Torretta 1_30-06-2020_10-06-11.rar" 5jgahmrkj51rtc1g41heol40
 cd 5jgahmrkj51rtc1g41heol40
-rar e "nc_Torretta 1_26-05-2020_03-53-08.rar"
-type +M6SV10484.nc >com2
-pause
-type +M6SV29827.nc >com2
-pause
-type +M6SV10455.nc >com2
-pause
-type +M6SV33522.nc >com2
-pause
-type +M6SV09806.nc >com2
-pause
-type +M6SV33521.nc >com2
+rar e "nc_Torretta 1_30-06-2020_10-06-11.rar"
+type +A6LM29619.nc >com2
+timeout /t 5
+type +A6LM28075.nc >com2
+timeout /t 5
+type +A6LM28073.nc >com2
+timeout /t 5
+type +A6LM29618.nc >com2
+timeout /t 5
+type +A6LM29617.nc >com2
+timeout /t 5
+type +A6LM28072.nc >com2
+timeout /t 5
+type +A6LM29616.nc >com2
+timeout /t 5
+type +A6LM29612.nc >com2
+timeout /t 5
+type +A6LM29611.nc >com2
+timeout /t 5
+type +A6LM29610.nc >com2
+timeout /t 5
+type +A6LM29609.nc >com2
+timeout /t 5
+type +A6LM29608.nc >com2
+timeout /t 5
+type +A6LM29607.nc >com2
+timeout /t 5
+type +A6LM29606.nc >com2
+timeout /t 5
+type +A6LM29603.nc >com2
+timeout /t 5
+type +A6LM29602.nc >com2
+timeout /t 5
+type +A6LM29556.nc >com2
+timeout /t 5
+type +A6LM29555.nc >com2
+timeout /t 5
+type +A6LM29554.nc >com2
+timeout /t 5
+type +A6LM28069.nc >com2
+timeout /t 5
+type +A6LM29552.nc >com2
+timeout /t 5
+type +A6LM29550.nc >com2
+timeout /t 5
+type +A6LM29549.nc >com2
+timeout /t 5
+type +A6LM29547.nc >com2
+timeout /t 5
+type +A6LM29546.nc >com2
+timeout /t 5
+type +A6LM29518.nc >com2
+timeout /t 5
+type +A6LM29517.nc >com2
+timeout /t 5
+type +A6LM29516.nc >com2
+timeout /t 5
+type +A6LM29514.nc >com2
+timeout /t 5
+type +A6LM29511.nc >com2
+timeout /t 5
+type +A6LM28064.nc >com2
+timeout /t 5
+type +A6LM29457.nc >com2
+timeout /t 5
+type +A6LM29456.nc >com2
+timeout /t 5
+type +A6LM29455.nc >com2
+timeout /t 5
+type +A6LM28061.nc >com2
+timeout /t 5
+type +A6LM29454.nc >com2
+timeout /t 5
+type +A6LM29453.nc >com2
+timeout /t 5
+type +A6LM29451.nc >com2
+timeout /t 5
+type +A6LM29450.nc >com2
+timeout /t 5
+type +A6LM29449.nc >com2
+timeout /t 5
+type +A6LM29446.nc >com2
+timeout /t 5
+type +A6LM28060.nc >com2
+timeout /t 5
+type +A6LM29445.nc >com2
+timeout /t 5
+type +A6LM29444.nc >com2
+timeout /t 5
+type +A6LM21070.nc >com2
+timeout /t 5
+type +A6LM28076.nc >com2
+timeout /t 5
+type +A6LM21069.nc >com2
+timeout /t 5
+type +A6LM21058.nc >com2
+timeout /t 5
+type +A6LM20976.nc >com2
+timeout /t 5
+type +A6LM20962.nc >com2
+timeout /t 5
+type +A6LM20929.nc >com2
+timeout /t 5
+type +A6LM20868.nc >com2
+timeout /t 5
+type +A6LM17432.nc >com2
 cd ..
 del trasferimento_nc.bat

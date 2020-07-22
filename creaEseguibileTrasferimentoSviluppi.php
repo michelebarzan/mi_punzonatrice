@@ -12,6 +12,7 @@
     $percorso_cartella_trasferimento=getParametro("percorso_cartella_trasferimento",$conn);
     $stringa_configurazione_porta_com=getParametro("stringa_configurazione_porta_com",$conn);
     $porta_com=getParametro("porta_com",$conn);
+	$comando_pausa_com=getParametro("comando_pausa_com",$conn);
 
     $array_testo_programma=[];
 
@@ -55,7 +56,7 @@
 			
 			if($i!==sizeof($codici))
 			{
-				$istruzione='pause';
+				$istruzione=$comando_pausa_com;
 				array_push($array_testo_programma,$istruzione);
 			}
 			

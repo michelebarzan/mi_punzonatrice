@@ -18,6 +18,8 @@
 		<script src="js/struttura.js"></script>
 		<script src="js/gestioneAnagrafiche.js"></script>
 		<script src="js/main.js"></script>
+		<script src="js_libraries/spinnersV2/spinners.js"></script>
+		<link rel="stylesheet" href="js_libraries/spinnersV2/spinners.css" />
 		<style>
 			.swal2-title
 			{
@@ -48,12 +50,12 @@
 				<button class="functionListButton" onclick="resetStyle(this);getTable('anagrafica_punzoni')">Anagrafica punzoni</button>
 				<button class="functionListButton" onclick="resetStyle(this);getTable('anagrafica_multitools')">Anagrafica multitools</button>
 				<button class="functionListButton" onclick="resetStyle(this);getTable('anagrafica_configurazioni')">Anagrafica configurazioni torretta</button>
-				<button class="functionListButton" onclick="resetStyle(this);getTable('scantonature')">Scantonature</button>
+				<button class="functionListButton" onclick="resetStyle(this);getMascheraScantonature()">Scantonature</button>
 				<button class="functionListButton" onclick="resetStyle(this);getTable('svilpan_punzonatrice')">Configurazione arretramenti (svilpan)</button>
 				<button class="functionListButton" onclick="resetStyle(this);addOptionsConfigurazioni();">Configurazioni punzoni torretta</button>
 			</div>
 		</div>
-		<div class="absoluteActionBarSommarioArchivi">
+		<div class="absoluteActionBarSommarioArchivi" id="absoluteActionBarSommarioArchivi">
 			<div id="editableTableControls" class="absoluteActionBarControls">
 				<div class="absoluteActionBarSommarioArchiviElement" id="selectConfigurazionePunzoniScantonatureContainer">
 					Configurazione: 

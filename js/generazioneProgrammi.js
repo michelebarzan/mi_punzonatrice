@@ -8,6 +8,7 @@ var conflittiSviluppiGenerati=[];
 var checkboxControlloConflitti;
 var checkboxAutoDownload;
 var checkboxDownloadSingoliFile;
+var checkboxSovrascriviNcManuali;
 var importazioniSchede=[];
 var oldSviluppiGenerati=[];
 var lunghezza_nome_breve_sviluppo;
@@ -45,6 +46,14 @@ async function checkCookieSettings()
         checkboxDownloadSingoliFile=true;
     if(coockieCheckboxDownloadSingoliFile.indexOf("false")>-1)
         checkboxDownloadSingoliFile=false;
+
+    var coockieCheckboxSovrascriviNcManuali=await getCookie("checkboxSovrascriviNcManuali");
+    if(coockieCheckboxSovrascriviNcManuali=="")
+        checkboxSovrascriviNcManuali=false;
+    if(coockieCheckboxSovrascriviNcManuali.indexOf("true")>-1)
+        checkboxSovrascriviNcManuali=true;
+    if(coockieCheckboxSovrascriviNcManuali.indexOf("false")>-1)
+        checkboxSovrascriviNcManuali=false;
 
     /*esempio funzionante di due radio button
     var coockieCheckboxDownloadArchivio=await getCookie("checkboxDownloadArchivio");console.log("checkboxDownloadArchivio: "+coockieCheckboxDownloadArchivio)
@@ -444,7 +453,7 @@ function caricaProgrammaSviluppo(input,sviluppo,idItemSviluppo)
     var fileName=file.name;
     if(fileName.split(".")[1]=="nc")
     {
-        if(fileName.split(".")[0]==sviluppo)
+        if(fileName.toLowerCase().split(".")[0]==sviluppo.toLowerCase())
         {
             var data= new FormData();
             data.append('file',file);
@@ -1333,6 +1342,35 @@ function generaTuttiProgrammiSviluppo(trasferisci)
         });
     }
 }
+function checkNcManuale(sviluppo,configurazione)
+{
+    return new Promise(function (resolve, reject) 
+    {
+        $.get("checkNcManuale.php",
+        {
+            sviluppo,
+            configurazione
+        },
+        function(response, status)
+        {
+            if(status=="success")
+            {
+                if(response.toLowerCase().indexOf("error")>-1 || response.toLowerCase().indexOf("notice")>-1 || response.toLowerCase().indexOf("warning")>-1)
+                {
+                    Swal.fire
+                    ({
+                        type: 'error',
+                        title: 'Errore',
+                        html: "<div style='text-align:center'>Se il problema persiste contatta l' amministratore.</div>"
+                    });
+                    resolve("false");
+                }
+                else
+                    resolve(response);
+            }
+        });
+    });
+}
 async function generaProgrammaSviluppo(progress,button,sviluppo,alert,last,autoDownload,traferisci)
 {
     button.innerHTML='<i style="color:#4C91CB" class="fad fa-spinner-third fa-spin"></i>';
@@ -1343,127 +1381,154 @@ async function generaProgrammaSviluppo(progress,button,sviluppo,alert,last,autoD
 
     var configurazione=document.getElementById("selectConfigurazionePunzoni").value;
 
-    var responseListaLavorazioni=await getlistaLavorazioni(sviluppo,configurazione);
+    var ncManuale=await checkNcManuale(sviluppo,configurazione);
+    console.log(ncManuale);
+    if(ncManuale.toString().indexOf("true")>-1)
+        ncManuale=true;
+    if(ncManuale.toString().indexOf("false")>-1)
+        ncManuale=false;
 
-    if(progress!=false)
+    console.log(ncManuale);
+    console.log(checkboxSovrascriviNcManuali);
+
+    if(!ncManuale || checkboxSovrascriviNcManuali)
     {
-        try {
-            document.getElementById("progressoGeneraTutti").innerHTML=progress+'/'+elencoSviluppi.length;
-        } catch (error) {}
+        var responseListaLavorazioni=await getlistaLavorazioni(sviluppo,configurazione);
+
+        if(progress!=false)
+        {
+            try {
+                document.getElementById("progressoGeneraTutti").innerHTML=progress+'/'+elencoSviluppi.length;
+            } catch (error) {}
+        }
+        
+        var errorsListaLavorazioni=false;
+        if(responseListaLavorazioni.toLowerCase().indexOf("error")>-1 || responseListaLavorazioni.toLowerCase().indexOf("notice")>-1 || responseListaLavorazioni.toLowerCase().indexOf("warning")>-1)
+        {
+            errorsListaLavorazioni=true;
+            console.log(responseListaLavorazioni);
+    
+            if(alert)
+            {
+                var id_errore=await reportErrorGenerazioneProgrammiSviluppi(sviluppo,configurazione,responseListaLavorazioni);
+                Swal.fire
+                ({
+                    type: 'error',
+                    title: 'Errore generale',
+                    html: "<div style='text-align:center'>Se il problema persiste contatta l' amministratore.<br><br><b>Prendi nota del codice di errore: "+id_errore+"</b></div>"
+                });
+            }
+            else
+            {
+                var errorType="Errore generale";
+                var errorsArrayItem=
+                {
+                    sviluppo,
+                    errorType
+                }
+                errorsArray.push(errorsArrayItem);
+            }
+            
+        }
+        if(responseListaLavorazioni.toLowerCase().indexOf("queryerr")>-1)
+        {
+            errorsListaLavorazioni=true;
+            console.log(responseListaLavorazioni);
+    
+            if(alert)
+            {
+                var id_errore=await reportErrorGenerazioneProgrammiSviluppi(sviluppo,configurazione,responseListaLavorazioni);
+                Swal.fire
+                ({
+                    type: 'error',
+                    title: 'Errore query',
+                    html: "<div style='text-align:center'>Se il problema persiste contatta l' amministratore.<br><br><b>Prendi nota del codice di errore: "+id_errore+"</b></div>"
+                });
+            }
+            else
+            {
+                var errorType="Errore query";
+                var errorsArrayItem=
+                {
+                    sviluppo,
+                    errorType
+                }
+                errorsArray.push(errorsArrayItem);
+            }
+        }
+        if(responseListaLavorazioni.toLowerCase().indexOf("generr")>-1)
+        {
+            errorsListaLavorazioni=true;
+            console.log(responseListaLavorazioni);
+            var message=responseListaLavorazioni.split("|")[1];
+            
+            if(alert)
+            {
+                var id_errore=await reportErrorGenerazioneProgrammiSviluppi(sviluppo,configurazione,responseListaLavorazioni);
+                Swal.fire
+                ({
+                    type: 'error',
+                    title: 'Impossibile generare lo sviluppo',
+                    html: "<div style='text-align:justify'>"+message+".<br>Se il problema persiste contatta l' amministratore.<br><br><b>Prendi nota del codice di errore: "+id_errore+"</b></div>"
+                });
+            }
+            else
+            {
+                var errorType="Impossibile generare lo sviluppo ("+message+")";
+                var errorsArrayItem=
+                {
+                    sviluppo,
+                    errorType
+                }
+                errorsArray.push(errorsArrayItem);
+            }
+        }
+        if(responseListaLavorazioni.toLowerCase().indexOf("parerr")>-1)
+        {
+            errorsListaLavorazioni=true;
+            console.log(responseListaLavorazioni);
+            var message=responseListaLavorazioni.split("|")[1];
+    
+            if(alert)
+            {
+                var id_errore=await reportErrorGenerazioneProgrammiSviluppi(sviluppo,configurazione,responseListaLavorazioni);
+                Swal.fire
+                ({
+                    type: 'error',
+                    title: 'Errore parametri',
+                    html: "<div style='text-align:justify'>"+message+".<br>Se il problema persiste contatta l' amministratore.<br><br><b>Prendi nota del codice di errore: "+id_errore+"</b></div>"
+                });
+            }
+            else
+            {
+                var errorType="Errore parametri ("+message+")";
+                var errorsArrayItem=
+                {
+                    sviluppo,
+                    errorType
+                }
+                errorsArray.push(errorsArrayItem);
+            }            
+        }
+    }
+    else
+    {
+        if(progress!=false)
+        {
+            try {
+                document.getElementById("progressoGeneraTutti").innerHTML=progress+'/'+elencoSviluppi.length;
+            } catch (error) {}
+        }
+        
+        var errorsListaLavorazioni=false;
+        var responseListaLavorazioni="";
     }
     
-    var errorsListaLavorazioni=false;
-    if(responseListaLavorazioni.toLowerCase().indexOf("error")>-1 || responseListaLavorazioni.toLowerCase().indexOf("notice")>-1 || responseListaLavorazioni.toLowerCase().indexOf("warning")>-1)
-    {
-        errorsListaLavorazioni=true;
-        console.log(responseListaLavorazioni);
-
-        if(alert)
-        {
-            var id_errore=await reportErrorGenerazioneProgrammiSviluppi(sviluppo,configurazione,responseListaLavorazioni);
-            Swal.fire
-            ({
-                type: 'error',
-                title: 'Errore generale',
-                html: "<div style='text-align:center'>Se il problema persiste contatta l' amministratore.<br><br><b>Prendi nota del codice di errore: "+id_errore+"</b></div>"
-            });
-        }
-        else
-        {
-            var errorType="Errore generale";
-            var errorsArrayItem=
-            {
-                sviluppo,
-                errorType
-            }
-            errorsArray.push(errorsArrayItem);
-        }
-        
-    }
-    if(responseListaLavorazioni.toLowerCase().indexOf("queryerr")>-1)
-    {
-        errorsListaLavorazioni=true;
-        console.log(responseListaLavorazioni);
-
-        if(alert)
-        {
-            var id_errore=await reportErrorGenerazioneProgrammiSviluppi(sviluppo,configurazione,responseListaLavorazioni);
-            Swal.fire
-            ({
-                type: 'error',
-                title: 'Errore query',
-                html: "<div style='text-align:center'>Se il problema persiste contatta l' amministratore.<br><br><b>Prendi nota del codice di errore: "+id_errore+"</b></div>"
-            });
-        }
-        else
-        {
-            var errorType="Errore query";
-            var errorsArrayItem=
-            {
-                sviluppo,
-                errorType
-            }
-            errorsArray.push(errorsArrayItem);
-        }
-    }
-    if(responseListaLavorazioni.toLowerCase().indexOf("generr")>-1)
-    {
-        errorsListaLavorazioni=true;
-        console.log(responseListaLavorazioni);
-        var message=responseListaLavorazioni.split("|")[1];
-        
-        if(alert)
-        {
-            var id_errore=await reportErrorGenerazioneProgrammiSviluppi(sviluppo,configurazione,responseListaLavorazioni);
-            Swal.fire
-            ({
-                type: 'error',
-                title: 'Impossibile generare lo sviluppo',
-                html: "<div style='text-align:justify'>"+message+".<br>Se il problema persiste contatta l' amministratore.<br><br><b>Prendi nota del codice di errore: "+id_errore+"</b></div>"
-            });
-        }
-        else
-        {
-            var errorType="Impossibile generare lo sviluppo ("+message+")";
-            var errorsArrayItem=
-            {
-                sviluppo,
-                errorType
-            }
-            errorsArray.push(errorsArrayItem);
-        }
-    }
-    if(responseListaLavorazioni.toLowerCase().indexOf("parerr")>-1)
-    {
-        errorsListaLavorazioni=true;
-        console.log(responseListaLavorazioni);
-        var message=responseListaLavorazioni.split("|")[1];
-
-        if(alert)
-        {
-            var id_errore=await reportErrorGenerazioneProgrammiSviluppi(sviluppo,configurazione,responseListaLavorazioni);
-            Swal.fire
-            ({
-                type: 'error',
-                title: 'Errore parametri',
-                html: "<div style='text-align:justify'>"+message+".<br>Se il problema persiste contatta l' amministratore.<br><br><b>Prendi nota del codice di errore: "+id_errore+"</b></div>"
-            });
-        }
-        else
-        {
-            var errorType="Errore parametri ("+message+")";
-            var errorsArrayItem=
-            {
-                sviluppo,
-                errorType
-            }
-            errorsArray.push(errorsArrayItem);
-        }            
-    }
     if(!errorsListaLavorazioni)
     {
         try
         {
+            if(!ncManuale || checkboxSovrascriviNcManuali)
             var listaLavorazioni=JSON.parse(responseListaLavorazioni);
             console.log(listaLavorazioni);
 
@@ -1589,17 +1654,11 @@ async function generaProgrammaSviluppo(progress,button,sviluppo,alert,last,autoD
         }
         else
         {
-            /*console.log(traferisci);
-            if(traferisci)
-                trasferisciProgrammiSviluppo();
-            else
-            {*/
-                Swal.fire
-                ({
-                    type: 'success',
-                    title: 'Sviluppi generati'
-                });
-            //}
+            Swal.fire
+            ({
+                type: 'success',
+                title: 'Sviluppi generati'
+            });
         }
     }
 }
@@ -2653,8 +2712,12 @@ async function getSelects()
             if(selected.includes(lotto_num_scheda))
                 codici.push(riga.CODELE);
         });
-        console.log(codici);
-        addSviluppi(codici);
+		codiciUnique = [];
+		$.each(codici, function(i, el){
+			if($.inArray(el, codiciUnique) === -1) codiciUnique.push(el);
+		});
+        console.log(codiciUnique);
+        addSviluppi(codiciUnique);
     }
 }
 function checkOption(option)
@@ -2680,6 +2743,149 @@ function searchCustomSelect(value)
 }
 async function getPopupScegliSchedeLotti(button)
 {
+    Swal.fire
+    ({
+        title: "Caricamento in corso... ",
+        background:"rgba(0,0,0,0.4)",
+        width:"100%",
+        html: '<i style="color:#ddd" class="fad fa-spinner-third fa-spin fa-3x"></i>',
+        showConfirmButton:false,
+        showCloseButton:false,
+        allowEscapeKey:false,
+        allowOutsideClick:false,
+        onOpen : function()
+        {
+            document.getElementsByClassName("swal2-title")[0].style.color="white";
+            document.getElementsByClassName("swal2-title")[0].style.fontSize="14px";
+            document.getElementsByClassName("swal2-container")[0].style.padding="0px";
+            document.getElementsByClassName("swal2-popup")[0].style.padding="0px";
+            document.getElementsByClassName("swal2-popup")[0].style.height="100%";
+        }
+    });
+
+    var outerContainer=document.createElement("div");
+    outerContainer.setAttribute("class","popup-scegli-schede-lotti-outer-container");
+
+    var searchBox=document.createElement("input");
+    searchBox.setAttribute("class","popup-scegli-schede-lotti-search");
+    searchBox.setAttribute("placeholder","Cerca...");
+    searchBox.setAttribute("type","search");
+    searchBox.setAttribute("onkeyup","searchPopupScegliSchedeLotti(this)");
+    outerContainer.appendChild(searchBox);
+
+    var innerContainer=document.createElement("div");
+    innerContainer.setAttribute("class","popup-scegli-schede-lotti-inner-container");
+
+    importazioniSchede=await getImportazioniSchede();
+    var schedeLotti=importazioniSchede.schedeLotti;
+    
+    var labelsLotto=[];
+    schedeLotti.forEach(function(schedaLotto)
+    {
+        if(!labelsLotto.includes(schedaLotto.lotto))
+        {
+            var checkboxContainer=document.createElement("div");
+            checkboxContainer.setAttribute("class","popup-scegli-schede-lotti-checkbox-container");
+
+            var labelLotto=document.createElement("span");
+            labelLotto.setAttribute("class","popup-scegli-schede-lotti-checkbox-label");
+            labelLotto.setAttribute("style","font-weight:bold;");
+            labelLotto.innerHTML=schedaLotto.lotto;
+            checkboxContainer.appendChild(labelLotto);
+            innerContainer.appendChild(checkboxContainer);
+            labelsLotto.push(schedaLotto.lotto);
+        }
+
+        var checkboxContainer=document.createElement("div");
+        checkboxContainer.setAttribute("class","popup-scegli-schede-lotti-checkbox-container");
+        checkboxContainer.setAttribute("onclick","checkCheckbox(event,this);");
+
+        var checkbox=document.createElement("input");
+        checkbox.setAttribute("class","popup-scegli-schede-lotti-checkbox");
+        checkbox.setAttribute("type","checkbox");
+        checkbox.setAttribute("value",schedaLotto.lotto+"|"+schedaLotto.num_scheda);
+        checkboxContainer.appendChild(checkbox);
+
+        var span=document.createElement("span");
+        span.setAttribute("class","popup-scegli-schede-lotti-checkbox-label");
+        span.innerHTML=schedaLotto.lotto+" | "+schedaLotto.num_scheda;
+        checkboxContainer.appendChild(span);
+
+        innerContainer.appendChild(checkboxContainer);
+    });
+
+    outerContainer.appendChild(innerContainer);
+
+    Swal.fire
+    ({
+        title: "Scegli schede lotti",
+        html: outerContainer.outerHTML,
+        showConfirmButton:true,
+        showCloseButton:true,
+        allowEscapeKey:true,
+        allowOutsideClick:true,
+        confirmButtonText:'Conferma',
+        onOpen : function()
+        {
+            document.getElementsByClassName("swal2-title")[0].style.color="#5a5a5a";
+            document.getElementsByClassName("swal2-title")[0].style.fontSize="14px";
+            /*document.getElementById("swal2-content").style.display="flex";
+            document.getElementById("swal2-content").style.alignItems="center";
+            document.getElementById("swal2-content").style.width="100%";
+            document.getElementById("swal2-content").style.justifyContent="flex-start";*/
+        }
+    }).then((result) => 
+    {
+        if (result.value)
+        {
+            var selected=[]
+
+            var options=document.getElementsByClassName("popup-scegli-schede-lotti-checkbox");
+            for (let index = 0; index < options.length; index++) 
+            {
+                const option = options[index];
+                var checked=option.checked;
+                if(checked)
+                    selected.push(option.value);
+            }
+
+            var codici=[];
+
+            if(selected.length>0)
+            {
+                importazioniSchede.importazioniSchede.forEach(function(riga)
+                {
+                    var lotto_num_scheda=riga.lotto+"|"+riga.num_scheda;
+                    if(selected.includes(lotto_num_scheda))
+                        codici.push(riga.CODELE);
+                });
+                codiciUnique = [];
+                $.each(codici, function(i, el){
+                    if($.inArray(el, codiciUnique) === -1) codiciUnique.push(el);
+                });
+                console.log(codiciUnique);
+                const index = codiciUnique.indexOf("000000000");
+                if (index > -1)
+                    codiciUnique.splice(index, 1);
+                addSviluppi(codiciUnique);
+            }
+        }
+    });
+}
+function searchPopupScegliSchedeLotti(input)
+{
+    var value=input.value;
+    $(".popup-scegli-schede-lotti-checkbox-container").filter(function() {
+        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+    });
+}
+function checkCheckbox(event,checkboxContainer)
+{
+    if(event.target.className=="popup-scegli-schede-lotti-checkbox-container" || event.target.className=="popup-scegli-schede-lotti-checkbox-label")
+        checkboxContainer.firstChild.checked=!checkboxContainer.firstChild.checked
+}
+/*async function getPopupScegliSchedeLotti(button)
+{
     closePopupScegliSchedeLotti();
 
     if(document.getElementById("selectScegliSchedeLotti")==null)
@@ -2689,6 +2895,26 @@ async function getPopupScegliSchedeLotti(button)
         selectOuterContainer.setAttribute("id","selectScegliSchedeLotti");
 
         document.body.appendChild(selectOuterContainer);
+		
+		var rect = button.getBoundingClientRect();
+
+		var width=button.offsetWidth;
+		var buttonHeight=button.offsetHeight;
+
+		var left=rect.left;
+		var top=rect.top+buttonHeight;
+	
+		$("#selectScegliSchedeLotti").show(100,"swing");
+    
+		setTimeout(function(){
+			$("#selectScegliSchedeLotti").css
+			({
+				"left":left+"px",
+				"top":top+"px",
+				"display":"flex",
+				"width":width+"px"
+			});
+		}, 120);
 
         var searchInput=document.createElement("input");
         searchInput.setAttribute("type","text");
@@ -2699,10 +2925,10 @@ async function getPopupScegliSchedeLotti(button)
 
         var innerContainer=document.createElement("div");
         innerContainer.setAttribute("class","custom-select-item custom-select-inner-container");
-
+		
         importazioniSchede=await getImportazioniSchede();
         var schedeLotti=importazioniSchede.schedeLotti;
-
+		
         var labelsLotto=[];
         schedeLotti.forEach(function(schedaLotto)
         {
@@ -2751,34 +2977,28 @@ async function getPopupScegliSchedeLotti(button)
 
         selectOuterContainer.appendChild(confirmButton);
     }
-    
-    var rect = button.getBoundingClientRect();
+	else
+	{
+		var rect = button.getBoundingClientRect();
 
-    var width=button.offsetWidth;
-    var buttonHeight=button.offsetHeight;
+		var width=button.offsetWidth;
+		var buttonHeight=button.offsetHeight;
 
-    var left=rect.left;
-    var top=rect.top+buttonHeight;
+		var left=rect.left;
+		var top=rect.top+buttonHeight;
 
-    $("#selectScegliSchedeLotti").show(100,"swing");
-    
-    setTimeout(function(){
-        $("#selectScegliSchedeLotti").css
-        ({
-            "left":left+"px",
-            "top":top+"px",
-            "display":"flex",
-            "width":width+"px"
-        });
-    }, 120);
-}
-/*window.addEventListener("click", windowClick, false);
-function windowClick(e)
-{
-    if(e.target.id!="btnScegliSchedeLotti" && e.target.parentElement.id!="btnScegliSchedeLotti" && e.target.className.indexOf("custom-select-item")==-1 && e.target.className!="custom-select-outer-container")
-    {
-        closePopupScegliSchedeLotti();
-    }
+		$("#selectScegliSchedeLotti").show(100,"swing");
+		
+		setTimeout(function(){
+			$("#selectScegliSchedeLotti").css
+			({
+				"left":left+"px",
+				"top":top+"px",
+				"display":"flex",
+				"width":width+"px"
+			});
+		}, 120);
+	}
 }*/
 function getImportazioniSchede()
 {
@@ -2892,55 +3112,28 @@ function getPopupImpostazioni()
 
     cell1.appendChild(labelDownloadSingoliFile);
 
-    //Download archivio vs Download singoli file
-    /*esempio funzionante di due radio button
+    //Sovrascrivi nc caricati manualmente
     var row = tbody.insertRow(-1);
 
     var cell1 = row.insertCell(0);
 
-    var labelDownloadArchivio=document.createElement("label");
-    labelDownloadArchivio.setAttribute("class","material-radio-button-container");
-    labelDownloadArchivio.innerHTML="Download archivio scarica tutti";
+    var labelSovrascriviNcManuali=document.createElement("label");
+    labelSovrascriviNcManuali.setAttribute("class","pure-material-checkbox");
 
-    var inputDownloadArchivio=document.createElement("input");
-    inputDownloadArchivio.setAttribute("type","radio");
-    inputDownloadArchivio.setAttribute("name","downloadArchivioDownloadSingoliFile");
-    if(checkboxDownloadArchivio)
-        inputDownloadArchivio.setAttribute("checked","checked");
-    inputDownloadArchivio.setAttribute("id","checkboxDownloadArchivio");
-    inputDownloadArchivio.setAttribute("onchange","checkboxDownloadArchivio=this.checked;setCookie('checkboxDownloadArchivio',this.checked);setCookie('checkboxDownloadSingoliFile',!this.checked)");
-    labelDownloadArchivio.appendChild(inputDownloadArchivio);
+    var inputSovrascriviNcManuali=document.createElement("input");
+    inputSovrascriviNcManuali.setAttribute("type","checkbox");
+    if(checkboxSovrascriviNcManuali)
+        inputSovrascriviNcManuali.setAttribute("checked","checked");
+    inputSovrascriviNcManuali.setAttribute("id","checkboxSovrascriviNcManuali");
+    inputSovrascriviNcManuali.setAttribute("onchange","checkboxSovrascriviNcManuali=this.checked;setCookie('checkboxSovrascriviNcManuali',this.checked)");
+    labelSovrascriviNcManuali.appendChild(inputSovrascriviNcManuali);
 
-    var spanDownloadArchivio=document.createElement("span");
-    spanDownloadArchivio.setAttribute("style","color:white");
-    spanDownloadArchivio.setAttribute("class","material-radio-button-checkmark");
-    labelDownloadArchivio.appendChild(spanDownloadArchivio);
+    var spanSovrascriviNcManuali=document.createElement("span");
+    spanSovrascriviNcManuali.setAttribute("style","color:white");
+    spanSovrascriviNcManuali.innerHTML="Sovrascrivi nc caricati manualmente";
+    labelSovrascriviNcManuali.appendChild(spanSovrascriviNcManuali);
 
-    cell1.appendChild(labelDownloadArchivio);
-
-    var row = tbody.insertRow(-1);
-
-    var cell1 = row.insertCell(0);
-
-    var labelDownloadSingoliFile=document.createElement("label");
-    labelDownloadSingoliFile.setAttribute("class","material-radio-button-container");
-    labelDownloadSingoliFile.innerHTML="Download singoli file scarica tutti";
-
-    var inputDownloadSingoliFile=document.createElement("input");
-    inputDownloadSingoliFile.setAttribute("type","radio");
-    inputDownloadSingoliFile.setAttribute("name","downloadArchivioDownloadSingoliFile");
-    if(checkboxDownloadSingoliFile)
-        inputDownloadSingoliFile.setAttribute("checked","checked");
-    inputDownloadSingoliFile.setAttribute("id","checkboxDownloadSingoliFile");
-    inputDownloadSingoliFile.setAttribute("onchange","checkboxDownloadSingoliFile=this.checked;setCookie('checkboxDownloadSingoliFile',this.checked);setCookie('checkboxDownloadArchivio',!this.checked)");
-    labelDownloadSingoliFile.appendChild(inputDownloadSingoliFile);
-
-    var spanDownloadSingoliFile=document.createElement("span");
-    spanDownloadSingoliFile.setAttribute("style","color:white");
-    spanDownloadSingoliFile.setAttribute("class","material-radio-button-checkmark");
-    labelDownloadSingoliFile.appendChild(spanDownloadSingoliFile);
-
-    cell1.appendChild(labelDownloadSingoliFile);*/
+    cell1.appendChild(labelSovrascriviNcManuali);
     
     //------------------------------------------------------------------------------------
     Swal.fire

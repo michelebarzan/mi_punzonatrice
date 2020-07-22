@@ -18,7 +18,7 @@
 
     //PRENDO LE INFORMAZIONI DELLO SVILUPPO-----------------------------------------------------
     $qInfoSviluppo="SELECT dbo.sviluppi.CODSVI, dbo.sviluppi.DESCRIZIONE, dbo.sviluppi.LUNG, dbo.sviluppi.SPESS, dbo.sviluppi.HALT, dbo.sviluppi.FINITURA, dbo.sviluppi.RIGHE, dbo.sviluppi.TIPO, dbo.pannellil.LUNG1, dbo.pannellil.LUNG2, 
-                        dbo.pannellil.ANG, mi_punzonatrice.dbo.svilpan_punzonatrice.orientamento
+                        dbo.pannellil.ANG, mi_punzonatrice.dbo.svilpan_punzonatrice.orientamento,dbo.svilpan_punzonatrice.misura_rotazione
                     FROM dbo.sviluppi INNER JOIN
                         dbo.DIBpan ON dbo.sviluppi.CODSVI = dbo.DIBpan.CODELE INNER JOIN
                         dbo.pannellil ON dbo.DIBpan.CODPAN = dbo.pannellil.CODPAN LEFT OUTER JOIN
@@ -45,6 +45,7 @@
             $infoSviluppo["LUNG2"]=$rowInfoSviluppo['LUNG2'];
             $infoSviluppo["ANG"]=$rowInfoSviluppo['ANG'];
             $infoSviluppo["orientamento"]=$rowInfoSviluppo['orientamento'];
+            $infoSviluppo["misura_rotazione"]=floatval($rowInfoSviluppo['misura_rotazione']);
         }
         $arrayResponse["sviluppo"]=$infoSviluppo;
     }
@@ -85,7 +86,7 @@
     //------------------------------------------------------------------------------------------
 
     //GENERO LE LAVORAZIONI PER I FORI----------------------------------------------------------
-    $qLavorazioni="SELECT * FROM dibsvi WHERE CODSVI='$sviluppo'";
+    $qLavorazioni="SELECT distinct * FROM dibsvi WHERE CODSVI='$sviluppo'";
     $rLavorazioni=sqlsrv_query($conn,$qLavorazioni);
     if($rLavorazioni==FALSE)
     {
@@ -231,7 +232,7 @@
     //------------------------------------------------------------------------------------------
 
     //MODIFICO LE COORDINATE DELLE LAVORAZIONI IN BASE ALL'ORIENTAMENTO DEL PANNELLO
-    if($infoSviluppo["orientamento"]=="ruotato")
+    if($infoSviluppo["orientamento"]=="ruotato" && $infoSviluppo["LUNG"]>$infoSviluppo["misura_rotazione"])
     {
         $j=0;
         foreach($arrayResponse["lavorazioni"] as $lavorazione)
@@ -256,6 +257,8 @@
             $j++;
         }
     }
+    else
+        $infoSviluppo["orientamento"]="standard";
     //------------------------------------------------------------------------------------------
 
     //SEPARO LE LAVORAZIONI IN BASE AI RIPOSIZIONAMENTI-----------------------------------------

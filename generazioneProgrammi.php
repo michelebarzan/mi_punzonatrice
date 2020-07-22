@@ -81,7 +81,7 @@
 			</div>-->
 			<button class="rcb-button-text-icon" id="btnScegliSchedeLotti" onclick="getPopupScegliSchedeLotti(this)">
 				<span>Scegli schede lotti</span>
-				<i class="fas fa-caret-down" style="margin-left:5px"></i>
+				<i class="fad fa-print-search" style="margin-left:5px"></i>
 			</button>
 		</div>
 		<div id="containerGenerazioneProgrammi">

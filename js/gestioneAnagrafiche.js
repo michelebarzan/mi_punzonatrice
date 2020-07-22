@@ -1,5 +1,7 @@
     var specialColumns=[];
     var selectPosizionePunzoneMicrogiuntureOldValue;
+    var nScantonature;
+    var latoScantonature;
 
     function mainNavBarLoaded()
     {
@@ -540,6 +542,7 @@
 
         var punzoniConfigurazioneResponse=await getPunzoniConfigurazione(configurazione);
         var altriPunzoniResponse=await getAltriPunzoni(configurazione);
+        console.log(punzoniConfigurazioneResponse);
         if(punzoniConfigurazioneResponse.indexOf("error")>-1 || punzoniConfigurazioneResponse.indexOf("notice")>-1 || punzoniConfigurazioneResponse.indexOf("warning")>-1 || altriPunzoniResponse.indexOf("error")>-1 || altriPunzoniResponse.indexOf("notice")>-1 || altriPunzoniResponse.indexOf("warning")>-1)
         {
             Swal.fire
@@ -553,7 +556,8 @@
         }
         else
         {
-            var multitoolPunzoniConfigurazione=JSON.parse(punzoniConfigurazioneResponse);
+            //var multitoolPunzoniConfigurazione=JSON.parse(punzoniConfigurazioneResponse);
+            var multitoolPunzoniConfigurazione=punzoniConfigurazioneResponse;
             var multitoolAltriPunzoni=JSON.parse(altriPunzoniResponse);
 
             //console.log(multitoolPunzoniConfigurazione);
@@ -1207,5 +1211,760 @@
             }
             else
                 console.log(status);
+        });
+    }
+    async function getMascheraScantonature()
+    {
+        Swal.fire
+        ({
+            title: "Caricamento in corso... ",
+            background:"rgba(0,0,0,0.4)",
+            html: '<i style="color:#ddd" class="fad fa-spinner-third fa-spin fa-3x"></i>',
+            showConfirmButton:false,
+            showCloseButton:false,
+            allowEscapeKey:false,
+            allowOutsideClick:false,
+            onOpen : function()
+            {
+                document.getElementsByClassName("swal2-title")[0].style.color="white";
+                document.getElementsByClassName("swal2-title")[0].style.fontSize="14px";
+                document.getElementsByClassName("swal2-title")[0].style.fontWeight="normal";
+                document.getElementsByClassName("swal2-container")[0].style.padding="0px";
+                document.getElementsByClassName("swal2-popup")[0].style.padding="0px";
+                document.getElementsByClassName("swal2-popup")[0].style.height="100%";
+                document.getElementsByClassName("swal2-popup")[0].style.maxWidth="100%";document.getElementsByClassName("swal2-popup")[0].style.minWidth="100%";document.getElementsByClassName("swal2-popup")[0].style.width="100%";
+            }
+        });
+
+        document.getElementById("editableTableControls").style.display="none";
+
+        var select=document.createElement("select");
+        select.setAttribute("id","selectConfigurazioneMascheraScantonature");
+        select.setAttribute("onchange","getMascheraScantonature()");
+
+        var configurazioni=await getConfigurazioni();
+        configurazioni=JSON.parse(configurazioni);
+
+        if(document.getElementById("selectConfigurazioneMascheraScantonature")==null)
+        {
+            configurazioni.forEach(function(configurazione)
+            {
+                var option=document.createElement("option");
+                option.setAttribute("value",configurazione.id_configurazione);
+                option.innerHTML=configurazione.nome;
+                select.appendChild(option);
+            });
+        }
+        else
+        {
+            configurazioni.forEach(function(configurazione)
+            {
+                var option=document.createElement("option");
+                option.setAttribute("value",configurazione.id_configurazione);
+                if(configurazione.id_configurazione==document.getElementById("selectConfigurazioneMascheraScantonature").value)
+                    option.setAttribute("selected","selected");
+                option.innerHTML=configurazione.nome;
+                select.appendChild(option);
+            });
+        }
+
+        nScantonature=0;
+        latoScantonature=null;
+
+        var containerSommarioArchivi=document.getElementById("containerSommarioArchivi");
+        containerSommarioArchivi.innerHTML="";
+
+        try {
+            document.getElementById("scantonatureControls").remove();
+        } catch (error) {}
+
+        var tipologie=await getTipologieSviluppi();
+
+        var scantonatureControls=document.createElement("div");
+        scantonatureControls.setAttribute("id","scantonatureControls");
+        scantonatureControls.setAttribute("class","absoluteActionBarControls");
+        scantonatureControls.setAttribute("style","display:flex");
+
+        var div=document.createElement("div");
+        div.setAttribute("class","absoluteActionBarSommarioArchiviElement");
+
+        div.innerHTML="Configurazione: ";
+        
+        div.appendChild(select);
+
+        scantonatureControls.appendChild(div);
+
+        var div=document.createElement("div");
+        div.setAttribute("class","absoluteActionBarSommarioArchiviElement");
+
+        div.innerHTML="Tipologia: ";
+
+        var select=document.createElement("select");
+        select.setAttribute("id","selectTipologiaSviluppo");
+        select.setAttribute("onchange","selectTipologiaSviluppoOnchange()");
+        
+        tipologie.forEach(function(tipologia)
+        {
+            var option=document.createElement("option");
+            option.innerHTML=tipologia;
+            select.appendChild(option);
+        });
+
+        div.appendChild(select);
+
+        scantonatureControls.appendChild(div);
+
+        document.getElementById("absoluteActionBarSommarioArchivi").appendChild(scantonatureControls);
+
+        var row=document.createElement("div");
+        row.setAttribute("class","container-row-scantonature");
+
+        var titleContainer=document.createElement("div");
+        titleContainer.setAttribute("class","title-row-scantonature");
+        titleContainer.setAttribute("style","width:250px");
+        titleContainer.innerHTML="<span style='margin-left:10px'>Lati</span>";
+        row.appendChild(titleContainer);
+
+        var titleContainer=document.createElement("div");
+        titleContainer.setAttribute("class","title-row-scantonature");
+        titleContainer.setAttribute("style","width:calc(100% - 260px);margin-left:10px");
+        titleContainer.innerHTML="<span style='margin-left:10px'>Dati scantonatura</span>";
+        row.appendChild(titleContainer);
+
+        var buttonAggiungi=document.createElement("button");
+        buttonAggiungi.setAttribute("class","title-row-scantonature-button");
+        buttonAggiungi.setAttribute("onclick","aggiungiRigaScantonature()");
+        buttonAggiungi.setAttribute("style","margin-left:auto;margin-right:5px");
+        buttonAggiungi.innerHTML='<span>Aggiungi</span><i class="fad fa-plus-circle"></i>';
+        titleContainer.appendChild(buttonAggiungi);
+
+        var buttonSalva=document.createElement("button");
+        buttonSalva.setAttribute("class","title-row-scantonature-button");
+        buttonSalva.setAttribute("onclick","salvaModificheScantonature(this)");
+        buttonSalva.setAttribute("style","margin-right:5px");
+        buttonSalva.innerHTML='<span>Salva</span><i class="fad fa-save"></i>';
+        titleContainer.appendChild(buttonSalva);
+
+        containerSommarioArchivi.appendChild(row);
+
+        var row=document.createElement("div");
+        row.setAttribute("class","container-row-scantonature");
+        
+        var containerLati=document.createElement("div");
+        containerLati.setAttribute("id","containerLatiScantonature");
+
+        var lati=["AD","AS","BD","BS","A0-180","A270","A271-360","B0-180","B270"];
+
+        var i=0;
+        lati.forEach(function(lato)
+        {
+            var div=document.createElement("div");
+            div.setAttribute("class","container-lati-scantonature-item");
+            div.setAttribute("id","containerLatiScantonatureItem"+lato);
+            if(i==lati.length-1)
+                div.setAttribute("style","border-bottom:none");
+            div.setAttribute("onclick","selezionaLatoScantonature(this,'"+lato+"')");
+            div.innerHTML=lato;
+            containerLati.appendChild(div);
+
+            i++;
+        });
+
+        row.appendChild(containerLati);
+
+        var containerDatiScantonature=document.createElement("div");
+        containerDatiScantonature.setAttribute("id","containerDatiScantonature");
+
+        var placeholder=document.createElement("div");
+        placeholder.setAttribute("id","containerDatiScantonaturePlaceholder");
+        placeholder.innerHTML='<i class="fad fa-ballot-check"></i><span>Seleziona un lato</span>';
+        containerDatiScantonature.appendChild(placeholder);
+
+        row.appendChild(containerDatiScantonature);
+
+        containerSommarioArchivi.appendChild(row);
+
+        var containerLatiHeight=document.getElementById("containerLatiScantonature").offsetHeight;
+        document.getElementById("containerDatiScantonature").style.height=containerLatiHeight+"px";
+
+        Swal.close();
+    }
+    function selectTipologiaSviluppoOnchange()
+    {
+        if(latoScantonature!=null)
+        {
+            selezionaLatoScantonature(document.getElementById('containerLatiScantonatureItem'+latoScantonature),latoScantonature);
+        }
+    }
+    async function salvaModificheScantonature(button)
+    {
+        if(nScantonature>0)
+        {
+            var icon=button.getElementsByTagName("i")[0];
+            icon.setAttribute("class","fad fa-spinner fa-spin");
+    
+            var error=false;
+            for (let i = 0; i < nScantonature; i++)
+            {
+                var id_scantonatura=parseInt(document.getElementById("checkboxLavorazioni"+i).getAttribute("id_scantonatura"));
+                if(document.getElementById("buttonErrorScantonatura"+i).getAttribute("error")=="true")
+                    var lavorazioni="error";
+                else
+                    var lavorazioni=document.getElementById("checkboxLavorazioni"+i).checked.toString();
+    
+                var configurazione_punzoni=document.getElementById("inputconfigurazione_punzoni"+i).value;
+                var posx=document.getElementById("inputposx"+i).value;
+                var posy=document.getElementById("inputposy"+i).value;
+                var angolo=document.getElementById("inputangolo"+i).value;
+                var interasse=document.getElementById("inputinterasse"+i).value;
+                var ripetizioni=document.getElementById("inputripetizioni"+i).value;
+                var rotazione=document.getElementById("inputrotazione"+i).value;
+                var distanza_punta_triangolo=document.getElementById("inputdistanza_punta_triangolo"+i).value;
+    
+                var response=await updateScantonature(id_scantonatura,lavorazioni,configurazione_punzoni,posx,posy,angolo,interasse,ripetizioni,rotazione,distanza_punta_triangolo);
+                if(response.toLowerCase().indexOf("error")>-1 || response.toLowerCase().indexOf("notice")>-1 || response.toLowerCase().indexOf("warning")>-1)
+                {
+                    error=true;
+                    console.log(response);
+                }
+            }
+    
+            if(error)
+            {
+                Swal.fire
+                ({
+                    type: 'error',
+                    title: 'Errore',
+                    text: "Se il problema persiste contatta l' amministratore"
+                });
+            }
+            else
+            {
+                Swal.fire
+                ({
+                    type: 'success',
+                    title: 'Modifiche salvate'
+                });
+            }
+    
+            icon.setAttribute("class","fad fa-save");
+        }
+    }
+    function updateScantonature(id_scantonatura,lavorazioni,configurazione_punzoni,posx,posy,angolo,interasse,ripetizioni,rotazione,distanza_punta_triangolo)
+    {
+        return new Promise(function (resolve, reject) 
+        {
+            if(id_scantonatura=='')
+            id_scantonatura="NULL";
+            if(lavorazioni=='')
+            lavorazioni="NULL";
+            if(configurazione_punzoni=='')
+            configurazione_punzoni="NULL";
+            if(posx=='')
+            posx="NULL";
+            if(posy=='')
+            posy="NULL";
+            if(angolo=='')
+            angolo="NULL";
+            if(interasse=='')
+            interasse="NULL";
+            if(ripetizioni=='')
+            ripetizioni="NULL";
+            if(rotazione=='')
+            rotazione="NULL";
+            if(distanza_punta_triangolo=='')
+            distanza_punta_triangolo="NULL";
+
+            $.post("updateScantonature.php",
+            {
+                id_scantonatura,lavorazioni,configurazione_punzoni,posx,posy,angolo,interasse,ripetizioni,rotazione,distanza_punta_triangolo
+            },
+            function(response, status)
+            {
+                if(status=="success")
+                {
+                    resolve(response);
+                }
+            });
+        });
+    }
+    async function selezionaLatoScantonature(containerLatiScantonatureItem,lato)
+    {
+        latoScantonature=lato;
+        
+        var tipo=document.getElementById("selectTipologiaSviluppo").value;
+
+        var items=document.getElementsByClassName("container-lati-scantonature-item");
+        for (let index = 0; index < items.length; index++)
+        {
+            const item = items[index];
+            item.style.backgroundColor="";
+            item.style.color="";
+        }
+        containerLatiScantonatureItem.style.backgroundColor="#4C91CB";
+        containerLatiScantonatureItem.style.color="#f1f1f1";
+
+        var containerDatiScantonature=document.getElementById("containerDatiScantonature");
+        containerDatiScantonature.innerHTML="";
+        getFaSpinner(containerDatiScantonature,"containerDatiScantonature","Caricamento in corso...");
+        
+        var scantonature=await getInfoScantonature(lato,tipo);
+
+        removeFaSpinner("containerDatiScantonature");
+
+        var configurazione=document.getElementById("selectConfigurazioneMascheraScantonature").value;
+
+        var punzoni=[];
+        var multitools=await getPunzoniConfigurazione(configurazione);
+        multitools.forEach(function(multitool)
+        {
+            multitool.punzoniMultitool.forEach(function(item)
+            {
+                punzone=
+                {
+                    descrizione:item.descrizione,
+                    id_configurazione_punzoni:item.id_configurazione_punzoni
+                }
+                punzoni.push(punzone);
+            });
+        });
+
+        if(scantonature.length==0)
+        {
+            var placeholder=document.createElement("div");
+            placeholder.setAttribute("id","containerDatiScantonaturePlaceholder");
+            placeholder.setAttribute("style","cursor:pointer");
+            placeholder.setAttribute("onclick","aggiungiRigaScantonature()");
+            placeholder.innerHTML='<i class="fal fa-plus-circle"></i><span>Aggiungi dati lavorazione</span>';
+            containerDatiScantonature.appendChild(placeholder);
+        }
+
+        nScantonature=scantonature.length;
+
+        var i=0;
+        scantonature.forEach(function (istruzione)
+        {
+            var row=document.createElement("div");
+            row.setAttribute("class","container-dati-scantonature-row");
+            if(i==0)
+                row.setAttribute("style","margin-top:5px;margin-bottom:10px");
+            else
+                row.setAttribute("style","margin-top:10px;margin-bottom:10px");
+
+            var div=document.createElement("div");
+            div.setAttribute("class","container-dati-scantonature-item");
+            div.setAttribute("style","margin-left:5px;display:flex;flex-direction:row;align-items:center;justify-content:flex-start");
+
+            var span=document.createElement("span");
+            span.innerHTML="Lavorazioni";
+            div.appendChild(span);
+
+            var checkbox=document.createElement("input");
+            checkbox.setAttribute("type","checkbox");
+            if(istruzione.lavorazioni=="true")
+                checkbox.setAttribute("checked","checked");
+            checkbox.setAttribute("style","margin-left:5px;height:17px;width:17px");
+            checkbox.setAttribute("id","checkboxLavorazioni"+i);
+            checkbox.setAttribute("id_scantonatura",istruzione.id_scantonatura);
+            checkbox.setAttribute("onchange","toggleInputDatiScantonatura("+i+")");
+            //checkbox.setAttribute("type","checkbox");
+            div.appendChild(checkbox);
+
+            row.appendChild(div);
+
+            var buttonError=document.createElement("button");
+            buttonError.setAttribute("class","title-row-scantonature-button");
+            buttonError.setAttribute("id","buttonErrorScantonatura"+i);
+            buttonError.setAttribute("onclick","errorRigaScantonature(this,"+i+")");
+            if(istruzione.lavorazioni=="error")
+                buttonError.setAttribute("error","false");
+            else
+                buttonError.setAttribute("error","true");
+            buttonError.setAttribute("style","margin-left:10px;border:1px solid #DA6969;background-color:white;color:#DA6969");
+            buttonError.innerHTML='<span style="color:#DA6969;text-decoration:none">Imposta messaggio errore</span><i class="fad fa-times-circle"></i>';
+            row.appendChild(buttonError);
+
+            var buttonElimina=document.createElement("button");
+            buttonElimina.setAttribute("class","title-row-scantonature-button");
+            buttonElimina.setAttribute("onclick","eliminaRigaScantonature('"+lato+"',"+istruzione.id_scantonatura+")");
+            buttonElimina.setAttribute("style","margin-left:auto;background-color:#DA6969;margin-right:5px");
+            buttonElimina.innerHTML='<span style="color:white;text-decoration:none">Elimina</span><i class="fad fa-trash"></i>';
+            row.appendChild(buttonElimina);
+
+            containerDatiScantonature.appendChild(row);
+
+            var row=document.createElement("div");
+            row.setAttribute("class","container-dati-scantonature-row");
+            row.setAttribute("style","justify-content: space-between;");
+
+            var div=document.createElement("div");
+            div.setAttribute("class","container-dati-scantonature-item");
+            div.setAttribute("style","margin-left:5px;margin-right:5px;margin-bottom:5px;width:calc(25% - 10px);display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start");
+
+            var span=document.createElement("span");
+            span.innerHTML="Punzone";
+            div.appendChild(span);
+
+            var select=document.createElement("select");
+            select.setAttribute("class","container-dati-scantonature-input container-dati-scantonature-input"+i);
+            if(istruzione.lavorazioni=="false" || istruzione.lavorazioni=="error")
+                select.setAttribute("disabled","disabled");
+            select.setAttribute("id","inputconfigurazione_punzoni"+i);
+
+            var option=document.createElement("option");
+            option.setAttribute("value","");
+            option.setAttribute("disabled","disabled");
+            option.setAttribute("selected","selected");
+            option.innerHTML="Seleziona";
+            select.appendChild(option);
+
+            punzoni.forEach(function(punzone)
+            {
+                var option=document.createElement("option");
+                option.setAttribute("value",punzone.id_configurazione_punzoni);
+                if(punzone.id_configurazione_punzoni==istruzione.configurazione_punzoni)
+                    option.setAttribute("selected","selected");
+                option.innerHTML=punzone.descrizione;
+                select.appendChild(option);
+            });
+
+            div.appendChild(select);
+
+            row.appendChild(div);
+
+            var div=document.createElement("div");
+            div.setAttribute("class","container-dati-scantonature-item");
+            div.setAttribute("style","margin-left:5px;margin-right:5px;margin-bottom:5px;width:calc(25% - 10px);display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start");
+
+            var span=document.createElement("span");
+            span.innerHTML="Centro (X)";
+            div.appendChild(span);
+
+            var input=document.createElement("input");
+            input.setAttribute("type","number");
+            if(istruzione.lavorazioni=="false" || istruzione.lavorazioni=="error")
+            input.setAttribute("disabled","disabled");
+            input.setAttribute("value",istruzione.posx);
+            input.setAttribute("id","inputposx"+i);
+            input.setAttribute("class","container-dati-scantonature-input container-dati-scantonature-input"+i);
+
+            div.appendChild(input);
+            
+            row.appendChild(div);
+            
+            var div=document.createElement("div");
+            div.setAttribute("class","container-dati-scantonature-item");
+            div.setAttribute("style","margin-left:5px;margin-right:5px;margin-bottom:5px;width:calc(25% - 10px);display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start");
+
+            var span=document.createElement("span");
+            span.innerHTML="Centro (Y)";
+            div.appendChild(span);
+
+            var input=document.createElement("input");
+            input.setAttribute("type","number");
+            if(istruzione.lavorazioni=="false" || istruzione.lavorazioni=="error")
+            input.setAttribute("disabled","disabled");
+            input.setAttribute("id","inputposy"+i);
+            input.setAttribute("value",istruzione.posy);
+            input.setAttribute("class","container-dati-scantonature-input container-dati-scantonature-input"+i);
+
+            div.appendChild(input);
+
+            row.appendChild(div);
+
+            var div=document.createElement("div");
+            div.setAttribute("class","container-dati-scantonature-item");
+            div.setAttribute("style","margin-left:5px;margin-right:5px;margin-bottom:5px;width:calc(25% - 10px);display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start");
+
+            var span=document.createElement("span");
+            span.innerHTML="Angolo";
+            div.appendChild(span);
+
+            var input=document.createElement("input");
+            input.setAttribute("type","number");
+            if(istruzione.lavorazioni=="false" || istruzione.lavorazioni=="error")
+            input.setAttribute("disabled","disabled");
+            input.setAttribute("id","inputangolo"+i);
+            input.setAttribute("value",istruzione.angolo);
+            input.setAttribute("class","container-dati-scantonature-input container-dati-scantonature-input"+i);
+
+            div.appendChild(input);
+
+            row.appendChild(div);
+
+            containerDatiScantonature.appendChild(row);
+
+            var row=document.createElement("div");
+            row.setAttribute("class","container-dati-scantonature-row");
+            if(i==scantonature.length-1)
+                row.setAttribute("style","justify-content: space-between;box-sizing:border-box;padding-top:10px;");
+            else
+                row.setAttribute("style","justify-content: space-between;box-sizing:border-box;padding-bottom:5px;padding-top:10px;border-bottom:1px solid #bbb");
+
+            var div=document.createElement("div");
+            div.setAttribute("class","container-dati-scantonature-item");
+            div.setAttribute("style","margin-left:5px;margin-right:5px;margin-bottom:5px;width:calc(25% - 10px);display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start");
+
+            var span=document.createElement("span");
+            span.innerHTML="Interasse";
+            div.appendChild(span);
+
+            var input=document.createElement("input");
+            input.setAttribute("type","number");
+            if(istruzione.lavorazioni=="false" || istruzione.lavorazioni=="error")
+            input.setAttribute("disabled","disabled");
+            input.setAttribute("id","inputinterasse"+i);
+            input.setAttribute("value",istruzione.interasse);
+            input.setAttribute("class","container-dati-scantonature-input container-dati-scantonature-input"+i);
+
+            div.appendChild(input);
+
+            row.appendChild(div);
+
+            var div=document.createElement("div");
+            div.setAttribute("class","container-dati-scantonature-item");
+            div.setAttribute("style","margin-left:5px;margin-right:5px;margin-bottom:5px;width:calc(25% - 10px);display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start");
+
+            var span=document.createElement("span");
+            span.innerHTML="Ripetizioni";
+            div.appendChild(span);
+
+            var input=document.createElement("input");
+            input.setAttribute("type","number");
+            if(istruzione.lavorazioni=="false" || istruzione.lavorazioni=="error")
+            input.setAttribute("disabled","disabled");
+            input.setAttribute("id","inputripetizioni"+i);
+            input.setAttribute("value",istruzione.ripetizioni);
+            input.setAttribute("class","container-dati-scantonature-input container-dati-scantonature-input"+i);
+
+            div.appendChild(input);
+
+            row.appendChild(div);
+
+            var div=document.createElement("div");
+            div.setAttribute("class","container-dati-scantonature-item");
+            div.setAttribute("style","margin-left:5px;margin-right:5px;margin-bottom:5px;width:calc(25% - 10px);display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start");
+
+            var span=document.createElement("span");
+            span.innerHTML="Rotazione";
+            div.appendChild(span);
+
+            var input=document.createElement("input");
+            input.setAttribute("type","number");
+            if(istruzione.lavorazioni=="false" || istruzione.lavorazioni=="error")
+            input.setAttribute("disabled","disabled");
+            input.setAttribute("id","inputrotazione"+i);
+            input.setAttribute("value",istruzione.rotazione);
+            input.setAttribute("class","container-dati-scantonature-input container-dati-scantonature-input"+i);
+
+            div.appendChild(input);
+
+            row.appendChild(div);
+
+            var div=document.createElement("div");
+            div.setAttribute("class","container-dati-scantonature-item");
+            div.setAttribute("style","margin-left:5px;margin-right:5px;margin-bottom:5px;width:calc(25% - 10px);display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start");
+
+            var span=document.createElement("span");
+            span.innerHTML="Distanza punta triangolo";
+            div.appendChild(span);
+
+            var input=document.createElement("input");
+            input.setAttribute("type","number");
+            if(istruzione.lavorazioni=="false" || istruzione.lavorazioni=="error")
+            input.setAttribute("disabled","disabled");
+            input.setAttribute("id","inputdistanza_punta_triangolo"+i);
+            input.setAttribute("value",istruzione.distanza_punta_triangolo);
+            input.setAttribute("class","container-dati-scantonature-input container-dati-scantonature-input"+i);
+
+            div.appendChild(input);
+
+            row.appendChild(div);
+            
+            containerDatiScantonature.appendChild(row);
+
+            errorRigaScantonature(document.getElementById("buttonErrorScantonatura"+i),i);
+
+            i++;
+        });
+    }
+    function eliminaRigaScantonature(lato,id_scantonatura)
+    {
+        $.post("eliminaRigaScantonature.php",
+        {
+            id_scantonatura
+        },
+        function(response, status)
+        {
+            if(status=="success")
+            {
+                if(response.toLowerCase().indexOf("error")>-1 || response.toLowerCase().indexOf("notice")>-1 || response.toLowerCase().indexOf("warning")>-1)
+                {
+                    Swal.fire
+                    ({
+                        type: 'error',
+                        title: 'Errore',
+                        text: "Se il problema persiste contatta l' amministratore"
+                    });
+                    console.log(response);
+                }
+                else
+                {
+                    selezionaLatoScantonature(document.getElementById("containerLatiScantonatureItem"+lato),lato);
+                }
+            }
+        });
+    }
+    function errorRigaScantonature(button,i)
+    {
+        if(button.getAttribute("error")=="false")
+        {
+            var all=document.getElementsByClassName("container-dati-scantonature-input"+i);
+
+            for (let index = 0; index < all.length; index++)
+            {
+                const element = all[index];
+                element.disabled=true;
+            }
+
+            document.getElementById("checkboxLavorazioni"+i).checked=false;
+            
+            button.style.border="";
+            button.style.backgroundColor="#DA6969";
+            button.style.color="";
+                
+            button.innerHTML='<span style="color:white;text-decoration:none">Rimuovi messaggio errore</span><i class="fad fa-times-circle"></i>';
+
+            document.getElementById("checkboxLavorazioni"+i).disabled=true;
+
+            button.setAttribute("error","true")
+        }
+        else
+        {
+            button.style.border="1px solid #DA6969";
+            button.style.backgroundColor="white";
+            button.style.color="#DA6969";
+                
+            button.innerHTML='<span style="color:#DA6969;text-decoration:none">Imposta messaggio errore</span><i class="fad fa-times-circle"></i>';
+
+            document.getElementById("checkboxLavorazioni"+i).disabled=false;
+
+            button.setAttribute("error","false")
+        }
+    }
+    function aggiungiRigaScantonature()
+    {
+        if(latoScantonature==null)
+        {
+            Swal.fire
+            ({
+                type: 'warning',
+                title: 'Seleziona un lato',
+                onOpen : function()
+                {
+                    document.getElementsByClassName("swal2-title")[0].style.fontSize="15px";
+                    document.getElementsByClassName("swal2-title")[0].style.fontWeight="normal";
+                },
+                showCloseButton:true,
+                showConfirmButton:false
+            });
+        }
+        else
+        {
+            var tipologia=document.getElementById("selectTipologiaSviluppo").value;
+            $.post("aggiungiRigaScantonature.php",
+            {
+                tipologia,
+                latoScantonature
+            },
+            function(response, status)
+            {
+                if(status=="success")
+                {
+                    if(response.toLowerCase().indexOf("error")>-1 || response.toLowerCase().indexOf("notice")>-1 || response.toLowerCase().indexOf("warning")>-1)
+                    {
+                        Swal.fire
+                        ({
+                            type: 'error',
+                            title: 'Errore',
+                            text: "Se il problema persiste contatta l' amministratore"
+                        });
+                        console.log(response);
+                    }
+                    else
+                    {
+                        selezionaLatoScantonature(document.getElementById("containerLatiScantonatureItem"+latoScantonature),latoScantonature);
+                    }
+                }
+            });
+        }
+    }
+    function getPunzoniConfigurazione(configurazione)
+    {
+        return new Promise(function (resolve, reject) 
+        {
+            $.get("getPunzoniConfigurazione.php",
+            {
+                configurazione
+            },
+            function(response, status)
+            {
+                if(status=="success")
+                {
+                    resolve(JSON.parse(response));
+                }
+                else
+                    reject({status});
+            });
+        });
+    }
+    function toggleInputDatiScantonatura(i)
+    {
+        var all=document.getElementsByClassName("container-dati-scantonature-input"+i);
+
+        for (let index = 0; index < all.length; index++)
+        {
+            const element = all[index];
+
+            if(element.disabled)
+                element.disabled=false;
+            else
+                element.disabled=true;
+        }
+    }
+    function getTipologieSviluppi()
+    {
+        return new Promise(function (resolve, reject) 
+        {
+            $.get("getTipologieSviluppi.php",
+            function(response, status)
+            {
+                if(status=="success")
+                {
+                    resolve(JSON.parse(response));
+                }
+                else
+                    reject({status});
+            });
+        });
+    }
+    function getInfoScantonature(lato,tipo)
+    {
+        return new Promise(function (resolve, reject) 
+        {
+            $.get("getInfoScantonature.php",
+            {
+                lato,
+                tipo
+            },
+            function(response, status)
+            {
+                if(status=="success")
+                {
+                    resolve(JSON.parse(response));
+                }
+                else
+                    reject({status});
+            });
         });
     }
